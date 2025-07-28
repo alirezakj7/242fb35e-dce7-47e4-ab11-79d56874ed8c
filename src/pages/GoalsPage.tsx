@@ -8,10 +8,13 @@ import { Badge } from '@/components/ui/badge';
 import { Target, Plus, Trophy, TrendingUp } from 'lucide-react';
 import { JalaliCalendar } from '@/utils/jalali';
 import { wheelOfLifeCategories } from '@/constants/categories';
+import { GoalModal } from '@/components/modals/GoalModal';
 
 export default function GoalsPage() {
   const { goals, loading } = useGoals();
   const [activeTab, setActiveTab] = useState('annual');
+  const [goalModalOpen, setGoalModalOpen] = useState(false);
+  const [goalModalType, setGoalModalType] = useState<'annual' | 'quarterly' | 'financial'>('annual');
 
   const getGoalsByType = (type: 'annual' | 'quarterly' | 'financial') => {
     return goals.filter(goal => goal.type === type);
@@ -26,6 +29,11 @@ export default function GoalsPage() {
 
   const getCategoryInfo = (categoryKey: string) => {
     return wheelOfLifeCategories.find(cat => cat.key === categoryKey);
+  };
+
+  const openGoalModal = (type: 'annual' | 'quarterly' | 'financial') => {
+    setGoalModalType(type);
+    setGoalModalOpen(true);
   };
 
   const renderGoalCard = (goal: any) => {
@@ -115,7 +123,11 @@ export default function GoalsPage() {
             تعیین و پیگیری اهداف شخصی و حرفه‌ای
           </p>
         </div>
-        <Button size="sm" className="shadow-elegant">
+        <Button 
+          size="sm" 
+          className="shadow-elegant"
+          onClick={() => openGoalModal('annual')}
+        >
           <Plus size={16} className="ml-1" />
           هدف جدید
         </Button>
@@ -185,7 +197,11 @@ export default function GoalsPage() {
               <CardContent className="text-center py-8">
                 <Target size={48} className="mx-auto mb-4 opacity-50 text-muted-foreground" />
                 <p className="text-muted-foreground mb-4">هنوز هدف ساليانه‌ای تعریف نکرده‌اید</p>
-                <Button variant="outline" size="sm">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => openGoalModal('annual')}
+                >
                   <Plus size={14} className="ml-1" />
                   تعریف هدف ساليانه
                 </Button>
@@ -209,7 +225,11 @@ export default function GoalsPage() {
               <CardContent className="text-center py-8">
                 <Target size={48} className="mx-auto mb-4 opacity-50 text-muted-foreground" />
                 <p className="text-muted-foreground mb-4">هنوز هدف فصلی‌ای تعریف نکرده‌اید</p>
-                <Button variant="outline" size="sm">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => openGoalModal('quarterly')}
+                >
                   <Plus size={14} className="ml-1" />
                   تعریف هدف فصلی
                 </Button>
@@ -233,7 +253,11 @@ export default function GoalsPage() {
               <CardContent className="text-center py-8">
                 <Target size={48} className="mx-auto mb-4 opacity-50 text-muted-foreground" />
                 <p className="text-muted-foreground mb-4">هنوز هدف مالی‌ای تعریف نکرده‌اید</p>
-                <Button variant="outline" size="sm">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => openGoalModal('financial')}
+                >
                   <Plus size={14} className="ml-1" />
                   تعریف هدف مالی
                 </Button>
@@ -246,6 +270,12 @@ export default function GoalsPage() {
           )}
         </TabsContent>
       </Tabs>
+      
+      <GoalModal 
+        open={goalModalOpen} 
+        onOpenChange={setGoalModalOpen}
+        defaultType={goalModalType}
+      />
     </div>
   );
 }

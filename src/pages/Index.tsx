@@ -20,11 +20,13 @@ import {
 } from 'lucide-react';
 import { JalaliCalendar } from '@/utils/jalali';
 import { wheelOfLifeCategories } from '@/constants/categories';
+import { TaskModal } from '@/components/modals/TaskModal';
 
 const Index = () => {
   const { tasks, loading: tasksLoading } = useTasks();
   const { goals, loading: goalsLoading } = useGoals();
   const { habits, loading: habitsLoading } = useHabits();
+  const [taskModalOpen, setTaskModalOpen] = useState(false);
 
   const getTodayTasks = () => {
     const today = new Date().toISOString().split('T')[0];
@@ -146,12 +148,14 @@ const Index = () => {
             <div className="text-center py-6">
               <Calendar size={32} className="mx-auto mb-3 opacity-50 text-muted-foreground" />
               <p className="text-muted-foreground text-sm mb-3">هیچ وظیفه‌ای برای امروز تعریف نشده</p>
-              <Link to="/planner">
-                <Button variant="outline" size="sm">
-                  <Plus size={14} className="ml-1" />
-                  افزودن وظیفه
-                </Button>
-              </Link>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => setTaskModalOpen(true)}
+              >
+                <Plus size={14} className="ml-1" />
+                افزودن وظیفه
+              </Button>
             </div>
           ) : (
             <div className="space-y-3">
@@ -360,6 +364,12 @@ const Index = () => {
           </Card>
         </Link>
       </div>
+      
+      <TaskModal 
+        open={taskModalOpen} 
+        onOpenChange={setTaskModalOpen}
+        defaultDate={new Date()}
+      />
     </div>
   );
 };

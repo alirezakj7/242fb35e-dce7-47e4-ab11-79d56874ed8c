@@ -5,11 +5,13 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Calendar, ChevronLeft, ChevronRight, Plus } from 'lucide-react';
+import { TaskModal } from '@/components/modals/TaskModal';
 
 export default function PlannerPage() {
   const { tasks, loading } = useTasks();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [activeTab, setActiveTab] = useState('daily');
+  const [taskModalOpen, setTaskModalOpen] = useState(false);
 
   const navigateDate = (direction: 'prev' | 'next') => {
     if (activeTab === 'daily') {
@@ -54,7 +56,11 @@ export default function PlannerPage() {
             مدیریت زمان و برنامه‌ریزی هوشمند
           </p>
         </div>
-        <Button size="sm" className="shadow-elegant">
+        <Button 
+          size="sm" 
+          className="shadow-elegant"
+          onClick={() => setTaskModalOpen(true)}
+        >
           <Plus size={16} className="ml-1" />
           وظیفه جدید
         </Button>
@@ -118,7 +124,12 @@ export default function PlannerPage() {
                 <div className="text-center py-8 text-muted-foreground">
                   <Calendar size={48} className="mx-auto mb-4 opacity-50" />
                   <p>هیچ وظیفه‌ای برای امروز تعریف نشده</p>
-                  <Button variant="outline" size="sm" className="mt-3">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="mt-3"
+                    onClick={() => setTaskModalOpen(true)}
+                  >
                     <Plus size={14} className="ml-1" />
                     افزودن وظیفه
                   </Button>
@@ -186,6 +197,12 @@ export default function PlannerPage() {
           </Card>
         </TabsContent>
       </Tabs>
+      
+      <TaskModal 
+        open={taskModalOpen} 
+        onOpenChange={setTaskModalOpen}
+        defaultDate={activeTab === 'daily' ? currentDate : undefined}
+      />
     </div>
   );
 }

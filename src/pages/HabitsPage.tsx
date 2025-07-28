@@ -7,9 +7,11 @@ import { Badge } from '@/components/ui/badge';
 import { CheckCircle2, Circle, Plus, Flame, Target } from 'lucide-react';
 import { JalaliCalendar } from '@/utils/jalali';
 import { wheelOfLifeCategories } from '@/constants/categories';
+import { HabitModal } from '@/components/modals/HabitModal';
 
 export default function HabitsPage() {
   const { habits, loading, toggleHabitCompletion } = useHabits();
+  const [habitModalOpen, setHabitModalOpen] = useState(false);
 
   const getCategoryInfo = (categoryKey: string) => {
     return wheelOfLifeCategories.find(cat => cat.key === categoryKey);
@@ -133,7 +135,11 @@ export default function HabitsPage() {
             ردیابی و تقویت عادت‌های مثبت روزانه
           </p>
         </div>
-        <Button size="sm" className="shadow-elegant">
+        <Button 
+          size="sm" 
+          className="shadow-elegant"
+          onClick={() => setHabitModalOpen(true)}
+        >
           <Plus size={16} className="ml-1" />
           عادت جدید
         </Button>
@@ -207,7 +213,11 @@ export default function HabitsPage() {
           {habits.length === 0 ? (
             <div className="text-center py-6">
               <p className="text-muted-foreground mb-4">هنوز عادتی تعریف نکرده‌اید</p>
-              <Button variant="outline" size="sm">
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => setHabitModalOpen(true)}
+              >
                 <Plus size={14} className="ml-1" />
                 شروع با عادت اول
               </Button>
@@ -277,7 +287,11 @@ export default function HabitsPage() {
             <CardContent className="text-center py-8">
               <Target size={48} className="mx-auto mb-4 opacity-50 text-muted-foreground" />
               <p className="text-muted-foreground mb-4">شروع سفر تغییر با اولین عادت مثبت</p>
-              <Button variant="outline" size="sm">
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => setHabitModalOpen(true)}
+              >
                 <Plus size={14} className="ml-1" />
                 ایجاد عادت جدید
               </Button>
@@ -289,6 +303,11 @@ export default function HabitsPage() {
           </div>
         )}
       </div>
+      
+      <HabitModal 
+        open={habitModalOpen} 
+        onOpenChange={setHabitModalOpen}
+      />
     </div>
   );
 }
