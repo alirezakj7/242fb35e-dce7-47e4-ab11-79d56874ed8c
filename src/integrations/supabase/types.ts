@@ -14,7 +14,285 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      financial_records: {
+        Row: {
+          amount: number
+          category: Database["public"]["Enums"]["wheel_of_life_category"]
+          created_at: string
+          date: string
+          description: string
+          id: string
+          routine_job_id: string | null
+          task_id: string | null
+          type: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          category: Database["public"]["Enums"]["wheel_of_life_category"]
+          created_at?: string
+          date?: string
+          description: string
+          id?: string
+          routine_job_id?: string | null
+          task_id?: string | null
+          type: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          category?: Database["public"]["Enums"]["wheel_of_life_category"]
+          created_at?: string
+          date?: string
+          description?: string
+          id?: string
+          routine_job_id?: string | null
+          task_id?: string | null
+          type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "financial_records_routine_job_id_fkey"
+            columns: ["routine_job_id"]
+            isOneToOne: false
+            referencedRelation: "routine_jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "financial_records_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      goals: {
+        Row: {
+          category: Database["public"]["Enums"]["wheel_of_life_category"]
+          completed: boolean
+          created_at: string
+          current_amount: number | null
+          deadline: string
+          description: string | null
+          id: string
+          target_amount: number | null
+          title: string
+          type: Database["public"]["Enums"]["goal_type"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          category: Database["public"]["Enums"]["wheel_of_life_category"]
+          completed?: boolean
+          created_at?: string
+          current_amount?: number | null
+          deadline: string
+          description?: string | null
+          id?: string
+          target_amount?: number | null
+          title: string
+          type: Database["public"]["Enums"]["goal_type"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          category?: Database["public"]["Enums"]["wheel_of_life_category"]
+          completed?: boolean
+          created_at?: string
+          current_amount?: number | null
+          deadline?: string
+          description?: string | null
+          id?: string
+          target_amount?: number | null
+          title?: string
+          type?: Database["public"]["Enums"]["goal_type"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      habits: {
+        Row: {
+          category: Database["public"]["Enums"]["wheel_of_life_category"]
+          completions: Json | null
+          created_at: string
+          days_of_week: number[]
+          description: string | null
+          id: string
+          name: string
+          reminder_time: string | null
+          streak: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          category: Database["public"]["Enums"]["wheel_of_life_category"]
+          completions?: Json | null
+          created_at?: string
+          days_of_week: number[]
+          description?: string | null
+          id?: string
+          name: string
+          reminder_time?: string | null
+          streak?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          category?: Database["public"]["Enums"]["wheel_of_life_category"]
+          completions?: Json | null
+          created_at?: string
+          days_of_week?: number[]
+          description?: string | null
+          id?: string
+          name?: string
+          reminder_time?: string | null
+          streak?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          display_name: string | null
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      routine_jobs: {
+        Row: {
+          active: boolean
+          category: Database["public"]["Enums"]["wheel_of_life_category"]
+          created_at: string
+          days_of_week: number[] | null
+          earnings: number
+          frequency: Database["public"]["Enums"]["frequency"]
+          id: string
+          name: string
+          time_slots: Json | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          active?: boolean
+          category: Database["public"]["Enums"]["wheel_of_life_category"]
+          created_at?: string
+          days_of_week?: number[] | null
+          earnings: number
+          frequency: Database["public"]["Enums"]["frequency"]
+          id?: string
+          name: string
+          time_slots?: Json | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          active?: boolean
+          category?: Database["public"]["Enums"]["wheel_of_life_category"]
+          created_at?: string
+          days_of_week?: number[] | null
+          earnings?: number
+          frequency?: Database["public"]["Enums"]["frequency"]
+          id?: string
+          name?: string
+          time_slots?: Json | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      tasks: {
+        Row: {
+          category: Database["public"]["Enums"]["wheel_of_life_category"]
+          completed_at: string | null
+          created_at: string
+          description: string | null
+          end_date: string | null
+          financial_type: Database["public"]["Enums"]["financial_type"] | null
+          goal_id: string | null
+          id: string
+          routine_job_id: string | null
+          scheduled_date: string | null
+          status: Database["public"]["Enums"]["task_status"]
+          tags: string[] | null
+          time_spent: number | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          category: Database["public"]["Enums"]["wheel_of_life_category"]
+          completed_at?: string | null
+          created_at?: string
+          description?: string | null
+          end_date?: string | null
+          financial_type?: Database["public"]["Enums"]["financial_type"] | null
+          goal_id?: string | null
+          id?: string
+          routine_job_id?: string | null
+          scheduled_date?: string | null
+          status?: Database["public"]["Enums"]["task_status"]
+          tags?: string[] | null
+          time_spent?: number | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          category?: Database["public"]["Enums"]["wheel_of_life_category"]
+          completed_at?: string | null
+          created_at?: string
+          description?: string | null
+          end_date?: string | null
+          financial_type?: Database["public"]["Enums"]["financial_type"] | null
+          goal_id?: string | null
+          id?: string
+          routine_job_id?: string | null
+          scheduled_date?: string | null
+          status?: Database["public"]["Enums"]["task_status"]
+          tags?: string[] | null
+          time_spent?: number | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tasks_goal_id_fkey"
+            columns: ["goal_id"]
+            isOneToOne: false
+            referencedRelation: "goals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_routine_job_id_fkey"
+            columns: ["routine_job_id"]
+            isOneToOne: false
+            referencedRelation: "routine_jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -23,7 +301,19 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      financial_type: "spend" | "earn_once" | "earn_routine"
+      frequency: "daily" | "weekly" | "monthly"
+      goal_type: "annual" | "quarterly" | "financial"
+      task_status: "not_started" | "in_progress" | "postponed" | "done"
+      wheel_of_life_category:
+        | "career"
+        | "finance"
+        | "health"
+        | "family"
+        | "personal"
+        | "spiritual"
+        | "social"
+        | "education"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +440,21 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      financial_type: ["spend", "earn_once", "earn_routine"],
+      frequency: ["daily", "weekly", "monthly"],
+      goal_type: ["annual", "quarterly", "financial"],
+      task_status: ["not_started", "in_progress", "postponed", "done"],
+      wheel_of_life_category: [
+        "career",
+        "finance",
+        "health",
+        "family",
+        "personal",
+        "spiritual",
+        "social",
+        "education",
+      ],
+    },
   },
 } as const

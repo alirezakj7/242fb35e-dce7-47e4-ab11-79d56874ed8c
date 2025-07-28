@@ -9,10 +9,13 @@ import {
   Wallet,
   Home,
   Menu,
-  X 
+  X,
+  LogOut 
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/hooks/use-toast';
 
 interface NavItem {
   name: string;
@@ -63,6 +66,24 @@ const navItems: NavItem[] = [
 export function MobileNavigation() {
   const location = useLocation();
   const [isOpen, setIsOpen] = useState(false);
+  const { signOut } = useAuth();
+  const { toast } = useToast();
+
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      toast({
+        title: 'خروج موفق',
+        description: 'با موفقیت از حساب کاربری خارج شدید',
+      });
+    } catch (error) {
+      toast({
+        title: 'خطا',
+        description: 'خطا در خروج از حساب کاربری',
+        variant: 'destructive'
+      });
+    }
+  };
 
   return (
     <>
@@ -135,6 +156,19 @@ export function MobileNavigation() {
                     </Link>
                   );
                 })}
+                
+                {/* Logout Button */}
+                <Button
+                  onClick={handleLogout}
+                  variant="outline"
+                  className="flex flex-col items-center p-4 h-auto border-destructive/20 hover:bg-destructive/10 hover:border-destructive text-destructive"
+                >
+                  <LogOut size={24} className="mb-2" />
+                  <span className="font-medium text-sm">خروج</span>
+                  <span className="text-xs text-muted-foreground text-center mt-1">
+                    خروج از حساب کاربری
+                  </span>
+                </Button>
               </div>
             </SheetContent>
           </Sheet>
@@ -175,6 +209,18 @@ export function MobileNavigation() {
               );
             })}
           </nav>
+          
+          {/* Desktop Logout Button */}
+          <div className="p-4 border-t border-border">
+            <Button
+              onClick={handleLogout}
+              variant="outline"
+              className="w-full justify-start border-destructive/20 hover:bg-destructive/10 hover:border-destructive text-destructive"
+            >
+              <LogOut size={20} className="ml-3" />
+              خروج از حساب کاربری
+            </Button>
+          </div>
         </div>
       </div>
     </>
