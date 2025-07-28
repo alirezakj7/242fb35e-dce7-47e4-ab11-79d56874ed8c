@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useApp } from '@/contexts/AppContext';
+import { useTasks } from '@/hooks/useTasks';
+import { useGoals } from '@/hooks/useGoals';
+import { useHabits } from '@/hooks/useHabits';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
@@ -17,42 +19,29 @@ import {
   Clock
 } from 'lucide-react';
 import { JalaliCalendar } from '@/utils/jalali';
+import { wheelOfLifeCategories } from '@/constants/categories';
 
 const Index = () => {
-  const { state, wheelOfLifeCategories } = useApp();
+  const { tasks, loading: tasksLoading } = useTasks();
+  const { goals, loading: goalsLoading } = useGoals();
+  const { habits, loading: habitsLoading } = useHabits();
 
   const getTodayTasks = () => {
-    const today = JalaliCalendar.format(new Date(), 'jYYYY/jMM/jDD');
-    return state.tasks.filter(task => 
-      task.scheduledDate && JalaliCalendar.format(task.scheduledDate, 'jYYYY/jMM/jDD') === today
+    const today = new Date().toISOString().split('T')[0];
+    return tasks.filter(task => 
+      task.scheduled_date === today
     );
   };
 
   const getTodayHabits = () => {
     const today = new Date().getDay();
-    return state.habits.filter(habit => 
-      habit.schedule.daysOfWeek.includes(today)
+    return habits.filter(habit => 
+      habit.days_of_week.includes(today)
     );
-  };
-
-  const getMonthlyFinancials = () => {
-    const currentMonth = JalaliCalendar.format(new Date(), 'jYYYY/jMM');
-    const monthRecords = state.financialRecords.filter(record => 
-      JalaliCalendar.format(record.date, 'jYYYY/jMM') === currentMonth
-    );
-    
-    const income = monthRecords
-      .filter(r => r.type === 'income')
-      .reduce((sum, r) => sum + r.amount, 0);
-    const expenses = monthRecords
-      .filter(r => r.type === 'expense')
-      .reduce((sum, r) => sum + r.amount, 0);
-    
-    return { income, expenses, netFlow: income - expenses };
   };
 
   const getActiveGoals = () => {
-    return state.goals.filter(goal => !goal.completed).slice(0, 3);
+    return goals.filter(goal => !goal.completed).slice(0, 3);
   };
 
   const getCategoryInfo = (categoryKey: string) => {
@@ -61,8 +50,11 @@ const Index = () => {
 
   const todayTasks = getTodayTasks();
   const todayHabits = getTodayHabits();
-  const financials = getMonthlyFinancials();
   const activeGoals = getActiveGoals();
+  
+  if (tasksLoading || goalsLoading || habitsLoading) {
+    return <div className="mobile-container py-6">در حال بارگذاری...</div>;
+  }
 
   return (
     <div className="mobile-container py-6">
@@ -102,7 +94,7 @@ const Index = () => {
           <CardContent className="p-4 text-center">
             <Target className="mx-auto mb-2 text-success" size={24} />
             <div className="text-xl font-bold text-success">
-              {JalaliCalendar.toPersianDigits(state.goals.filter(g => !g.completed).length)}
+              {JalaliCalendar.toPersianDigits(goals.filter(g => !g.completed).length)}
             </div>
             <div className="text-xs text-muted-foreground">اهداف فعال</div>
           </CardContent>
@@ -112,7 +104,7 @@ const Index = () => {
           <CardContent className="p-4 text-center">
             <CheckCircle2 className="mx-auto mb-2 text-accent" size={24} />
             <div className="text-xl font-bold text-accent">
-              {JalaliCalendar.toPersianDigits(state.habits.length)}
+              {JalaliCalendar.toPersianDigits(habits.length)}
             </div>
             <div className="text-xs text-muted-foreground">عادت‌ها</div>
           </CardContent>
@@ -120,10 +112,9 @@ const Index = () => {
         
         <Card className="shadow-card hover:shadow-elegant transition-smooth">
           <CardContent className="p-4 text-center">
-            <Wallet className={`mx-auto mb-2 ${financials.netFlow >= 0 ? 'text-success' : 'text-destructive'}`} size={24} />
-            <div className={`text-lg font-bold ${financials.netFlow >= 0 ? 'text-success' : 'text-destructive'}`}>
-              {financials.netFlow >= 0 ? '+' : ''}
-              {JalaliCalendar.toPersianDigits(Math.round(financials.netFlow / 1000))}K
+            <Wallet className="mx-auto mb-2 text-primary" size={24} />
+            <div className="text-xl font-bold text-primary">
+              ۰
             </div>
             <div className="text-xs text-muted-foreground">جریان نقدی</div>
           </CardContent>
@@ -237,8 +228,8 @@ const Index = () => {
             <div className="space-y-3">
               {todayHabits.map((habit) => {
                 const categoryInfo = getCategoryInfo(habit.category);
-                const today = JalaliCalendar.format(new Date(), 'jYYYY/jMM/jDD');
-                const todayCompletion = habit.completions.find((c: any) => c.date === today);
+                const today = new Date().toISOString().split('T')[0];
+                const todayCompletion = (habit.completions as any[] || []).find((c: any) => c.date === today);
                 const isCompletedToday = todayCompletion?.completed || false;
 
                 return (
@@ -269,10 +260,10 @@ const Index = () => {
                           </Badge>
                         )}
                       </div>
-                      {habit.schedule.reminderTime && (
+                      {habit.reminder_time && (
                         <div className="flex items-center gap-1 text-xs text-muted-foreground">
                           <Clock size={10} />
-                          {JalaliCalendar.toPersianDigits(habit.schedule.reminderTime)}
+                          {JalaliCalendar.toPersianDigits(habit.reminder_time)}
                         </div>
                       )}
                     </div>
@@ -320,8 +311,8 @@ const Index = () => {
             <div className="space-y-4">
               {activeGoals.map((goal) => {
                 const categoryInfo = getCategoryInfo(goal.category);
-                const progress = goal.type === 'financial' && goal.targetAmount && goal.currentAmount 
-                  ? Math.min((goal.currentAmount / goal.targetAmount) * 100, 100)
+                const progress = goal.type === 'financial' && goal.target_amount && goal.current_amount 
+                  ? Math.min((goal.current_amount / goal.target_amount) * 100, 100)
                   : 0;
 
                 return (

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useApp } from '@/contexts/AppContext';
+import { useGoals } from '@/hooks/useGoals';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -7,18 +7,19 @@ import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Target, Plus, Trophy, TrendingUp } from 'lucide-react';
 import { JalaliCalendar } from '@/utils/jalali';
+import { wheelOfLifeCategories } from '@/constants/categories';
 
 export default function GoalsPage() {
-  const { state, wheelOfLifeCategories } = useApp();
+  const { goals, loading } = useGoals();
   const [activeTab, setActiveTab] = useState('annual');
 
   const getGoalsByType = (type: 'annual' | 'quarterly' | 'financial') => {
-    return state.goals.filter(goal => goal.type === type);
+    return goals.filter(goal => goal.type === type);
   };
 
   const calculateProgress = (goal: any) => {
-    if (goal.type === 'financial' && goal.targetAmount && goal.currentAmount) {
-      return Math.min((goal.currentAmount / goal.targetAmount) * 100, 100);
+    if (goal.type === 'financial' && goal.target_amount && goal.current_amount) {
+      return Math.min((goal.current_amount / goal.target_amount) * 100, 100);
     }
     return goal.completed ? 100 : 0;
   };
@@ -63,19 +64,19 @@ export default function GoalsPage() {
             </div>
 
             {/* Financial Details */}
-            {goal.type === 'financial' && goal.targetAmount && (
+            {goal.type === 'financial' && goal.target_amount && (
               <div className="bg-muted/30 rounded-lg p-3">
                 <div className="flex justify-between text-sm">
                   <span>هدف مالی:</span>
                   <span className="font-medium">
-                    {JalaliCalendar.toPersianDigits(goal.targetAmount.toLocaleString())} تومان
+                    {JalaliCalendar.toPersianDigits(goal.target_amount.toLocaleString())} تومان
                   </span>
                 </div>
-                {goal.currentAmount && (
+                {goal.current_amount && (
                   <div className="flex justify-between text-sm mt-1">
                     <span>مبلغ فعلی:</span>
                     <span className="font-medium text-success">
-                      {JalaliCalendar.toPersianDigits(goal.currentAmount.toLocaleString())} تومان
+                      {JalaliCalendar.toPersianDigits(goal.current_amount.toLocaleString())} تومان
                     </span>
                   </div>
                 )}
@@ -100,6 +101,10 @@ export default function GoalsPage() {
     );
   };
 
+  if (loading) {
+    return <div className="mobile-container py-6">در حال بارگذاری...</div>;
+  }
+
   return (
     <div className="mobile-container py-6">
       {/* Header */}
@@ -121,7 +126,7 @@ export default function GoalsPage() {
         <Card className="shadow-card">
           <CardContent className="p-4 text-center">
             <div className="text-2xl font-bold text-primary mb-1">
-              {JalaliCalendar.toPersianDigits(state.goals.length)}
+              {JalaliCalendar.toPersianDigits(goals.length)}
             </div>
             <div className="text-xs text-muted-foreground">کل اهداف</div>
           </CardContent>
@@ -130,7 +135,7 @@ export default function GoalsPage() {
         <Card className="shadow-card">
           <CardContent className="p-4 text-center">
             <div className="text-2xl font-bold text-success mb-1">
-              {JalaliCalendar.toPersianDigits(state.goals.filter(g => g.completed).length)}
+              {JalaliCalendar.toPersianDigits(goals.filter(g => g.completed).length)}
             </div>
             <div className="text-xs text-muted-foreground">تکمیل شده</div>
           </CardContent>
@@ -139,7 +144,7 @@ export default function GoalsPage() {
         <Card className="shadow-card">
           <CardContent className="p-4 text-center">
             <div className="text-2xl font-bold text-accent mb-1">
-              {JalaliCalendar.toPersianDigits(state.goals.filter(g => g.type === 'financial').length)}
+              {JalaliCalendar.toPersianDigits(goals.filter(g => g.type === 'financial').length)}
             </div>
             <div className="text-xs text-muted-foreground">اهداف مالی</div>
           </CardContent>
@@ -150,8 +155,8 @@ export default function GoalsPage() {
             <div className="text-2xl font-bold text-primary-glow mb-1">
               {JalaliCalendar.toPersianDigits(
                 Math.round(
-                  state.goals.length > 0 
-                    ? (state.goals.filter(g => g.completed).length / state.goals.length) * 100 
+                  goals.length > 0 
+                    ? (goals.filter(g => g.completed).length / goals.length) * 100 
                     : 0
                 )
               )}%

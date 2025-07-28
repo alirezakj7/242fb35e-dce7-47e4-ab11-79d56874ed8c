@@ -1,13 +1,13 @@
 import { useState } from 'react';
 import { JalaliCalendar } from '@/utils/jalali';
-import { useApp } from '@/contexts/AppContext';
+import { useTasks } from '@/hooks/useTasks';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Calendar, ChevronLeft, ChevronRight, Plus } from 'lucide-react';
 
 export default function PlannerPage() {
-  const { state } = useApp();
+  const { tasks, loading } = useTasks();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [activeTab, setActiveTab] = useState('daily');
 
@@ -22,9 +22,9 @@ export default function PlannerPage() {
   };
 
   const getTodayTasks = () => {
-    const today = JalaliCalendar.format(currentDate, 'jYYYY/jMM/jDD');
-    return state.tasks.filter(task => 
-      task.scheduledDate && JalaliCalendar.format(task.scheduledDate, 'jYYYY/jMM/jDD') === today
+    const today = currentDate.toISOString().split('T')[0];
+    return tasks.filter(task => 
+      task.scheduled_date === today
     );
   };
 
@@ -39,6 +39,10 @@ export default function PlannerPage() {
       return JalaliCalendar.formatPersian(currentDate, 'jMMMM jYYYY');
     }
   };
+
+  if (loading) {
+    return <div className="mobile-container py-6">در حال بارگذاری...</div>;
+  }
 
   return (
     <div className="mobile-container py-6">
@@ -135,7 +139,7 @@ export default function PlannerPage() {
                       <div className="flex-1">
                         <h4 className="font-medium">{task.title}</h4>
                         <p className="text-sm text-muted-foreground">
-                          {task.category} • {task.tags.join('، ')}
+                          {task.category} • {task.tags?.join('، ') || ''}
                         </p>
                       </div>
                     </div>

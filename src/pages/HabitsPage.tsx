@@ -1,14 +1,15 @@
 import { useState } from 'react';
-import { useApp } from '@/contexts/AppContext';
+import { useHabits } from '@/hooks/useHabits';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { CheckCircle2, Circle, Plus, Flame, Target } from 'lucide-react';
 import { JalaliCalendar } from '@/utils/jalali';
+import { wheelOfLifeCategories } from '@/constants/categories';
 
 export default function HabitsPage() {
-  const { state, wheelOfLifeCategories } = useApp();
+  const { habits, loading, toggleHabitCompletion } = useHabits();
 
   const getCategoryInfo = (categoryKey: string) => {
     return wheelOfLifeCategories.find(cat => cat.key === categoryKey);
@@ -92,7 +93,7 @@ export default function HabitsPage() {
             <div>
               <div className="text-sm text-muted-foreground mb-2">روزهای برنامه‌ریزی شده:</div>
               <div className="flex flex-wrap gap-1">
-                {habit.schedule.daysOfWeek.map((dayIndex: number) => (
+                {habit.days_of_week.map((dayIndex: number) => (
                   <Badge key={dayIndex} variant="outline" className="text-xs">
                     {getDayName(dayIndex)}
                   </Badge>
@@ -101,11 +102,11 @@ export default function HabitsPage() {
             </div>
 
             {/* Reminder Time */}
-            {habit.schedule.reminderTime && (
+            {habit.reminder_time && (
               <div className="flex items-center justify-between text-sm">
                 <span className="text-muted-foreground">زمان یادآوری:</span>
                 <span className="font-medium">
-                  {JalaliCalendar.toPersianDigits(habit.schedule.reminderTime)}
+                  {JalaliCalendar.toPersianDigits(habit.reminder_time)}
                 </span>
               </div>
             )}
@@ -143,7 +144,7 @@ export default function HabitsPage() {
         <Card className="shadow-card">
           <CardContent className="p-4 text-center">
             <div className="text-2xl font-bold text-primary mb-1">
-              {JalaliCalendar.toPersianDigits(state.habits.length)}
+              {JalaliCalendar.toPersianDigits(habits.length)}
             </div>
             <div className="text-xs text-muted-foreground">کل عادت‌ها</div>
           </CardContent>
@@ -153,9 +154,9 @@ export default function HabitsPage() {
           <CardContent className="p-4 text-center">
             <div className="text-2xl font-bold text-success mb-1">
               {JalaliCalendar.toPersianDigits(
-                state.habits.filter(h => {
-                  const today = JalaliCalendar.format(new Date(), 'jYYYY/jMM/jDD');
-                  const todayCompletion = h.completions.find((c: any) => c.date === today);
+                habits.filter(h => {
+                  const today = new Date().toISOString().split('T')[0];
+                  const todayCompletion = (h.completions as any[] || []).find((c: any) => c.date === today);
                   return todayCompletion?.completed;
                 }).length
               )}
@@ -169,7 +170,7 @@ export default function HabitsPage() {
             <div className="text-2xl font-bold text-accent mb-1 flex items-center justify-center gap-1">
               <Flame size={20} className="text-orange-500" />
               {JalaliCalendar.toPersianDigits(
-                Math.max(...state.habits.map(h => h.streak), 0)
+                Math.max(...habits.map(h => h.streak), 0)
               )}
             </div>
             <div className="text-xs text-muted-foreground">بهترین استریک</div>
@@ -181,8 +182,8 @@ export default function HabitsPage() {
             <div className="text-2xl font-bold text-primary-glow mb-1">
               {JalaliCalendar.toPersianDigits(
                 Math.round(
-                  state.habits.length > 0 
-                    ? state.habits.reduce((acc, habit) => acc + getMonthlyConsistency(habit), 0) / state.habits.length
+                  habits.length > 0 
+                    ? habits.reduce((acc, habit) => acc + getMonthlyConsistency(habit), 0) / habits.length
                     : 0
                 )
               )}%
@@ -203,7 +204,7 @@ export default function HabitsPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {state.habits.length === 0 ? (
+          {habits.length === 0 ? (
             <div className="text-center py-6">
               <p className="text-muted-foreground mb-4">هنوز عادتی تعریف نکرده‌اید</p>
               <Button variant="outline" size="sm">
@@ -213,13 +214,13 @@ export default function HabitsPage() {
             </div>
           ) : (
             <div className="space-y-3">
-              {state.habits.filter(habit => {
+              {habits.filter(habit => {
                 const today = new Date().getDay();
-                return habit.schedule.daysOfWeek.includes(today);
+                return habit.days_of_week.includes(today);
               }).map(habit => {
                 const categoryInfo = getCategoryInfo(habit.category);
-                const today = JalaliCalendar.format(new Date(), 'jYYYY/jMM/jDD');
-                const todayCompletion = habit.completions.find((c: any) => c.date === today);
+                const today = new Date().toISOString().split('T')[0];
+                const todayCompletion = (habit.completions as any[] || []).find((c: any) => c.date === today);
                 const isCompletedToday = todayCompletion?.completed || false;
 
                 return (
@@ -250,9 +251,9 @@ export default function HabitsPage() {
                           </Badge>
                         )}
                       </div>
-                      {habit.schedule.reminderTime && (
+                      {habit.reminder_time && (
                         <p className="text-sm text-muted-foreground">
-                          یادآوری: {JalaliCalendar.toPersianDigits(habit.schedule.reminderTime)}
+                          یادآوری: {JalaliCalendar.toPersianDigits(habit.reminder_time)}
                         </p>
                       )}
                     </div>
@@ -271,7 +272,7 @@ export default function HabitsPage() {
           <h2 className="font-semibold">همه عادت‌ها</h2>
         </div>
         
-        {state.habits.length === 0 ? (
+        {habits.length === 0 ? (
           <Card className="shadow-card">
             <CardContent className="text-center py-8">
               <Target size={48} className="mx-auto mb-4 opacity-50 text-muted-foreground" />
@@ -284,7 +285,7 @@ export default function HabitsPage() {
           </Card>
         ) : (
           <div className="grid gap-4">
-            {state.habits.map(renderHabitCard)}
+            {habits.map(renderHabitCard)}
           </div>
         )}
       </div>
