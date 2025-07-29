@@ -369,74 +369,155 @@ export default function PlannerPage() {
                       </div>
                     </div>
 
-                    {/* Tasks by Week */}
+                    {/* Calendar Grid */}
                     {(() => {
                       const startOfMonth = JalaliCalendar.startOfMonth(currentDate);
                       const endOfMonth = JalaliCalendar.endOfMonth(currentDate);
-                      const weeks = [];
+                      const startOfCalendar = JalaliCalendar.startOfWeek(startOfMonth);
+                      const endOfCalendar = JalaliCalendar.endOfWeek(endOfMonth);
                       
-                      let currentWeekStart = JalaliCalendar.startOfWeek(startOfMonth);
-                      while (currentWeekStart.isBefore(endOfMonth) || currentWeekStart.isSame(endOfMonth, 'week')) {
-                        const weekEnd = JalaliCalendar.endOfWeek(currentWeekStart);
-                        weeks.push({
-                          start: currentWeekStart.clone(),
-                          end: weekEnd.clone(),
-                          tasks: monthTasks.filter(task => {
-                            const taskDate = new Date(task.scheduled_date || '');
-                            return taskDate >= currentWeekStart.toDate() && taskDate <= weekEnd.toDate();
-                          })
+                      const weekDays = ['ش', 'ی', 'د', 'س', 'چ', 'پ', 'ج']; // شنبه تا جمعه
+                      const calendarDays = [];
+                      
+                      let currentDay = startOfCalendar.clone();
+                      while (currentDay.isSameOrBefore(endOfCalendar, 'day')) {
+                        const dayTasks = monthTasks.filter(task => 
+                          task.scheduled_date === currentDay.format('YYYY-MM-DD')
+                        );
+                        
+                        const isToday = JalaliCalendar.isToday(currentDay.toDate());
+                        const isCurrentMonth = JalaliCalendar.isSameMonth(currentDay.toDate(), currentDate);
+                        const isWeekend = currentDay.day() === 5 || currentDay.day() === 6; // جمعه و شنبه
+                        
+                        calendarDays.push({
+                          date: currentDay.clone(),
+                          tasks: dayTasks,
+                          isToday,
+                          isCurrentMonth,
+                          isWeekend
                         });
-                        currentWeekStart = JalaliCalendar.addDays(currentWeekStart, 7);
+                        
+                        currentDay = JalaliCalendar.addDays(currentDay, 1);
+                      }
+                      
+                      // Group by weeks
+                      const weeks = [];
+                      for (let i = 0; i < calendarDays.length; i += 7) {
+                        weeks.push(calendarDays.slice(i, i + 7));
                       }
                       
                       return (
-                        <div className="space-y-3">
-                          {weeks.map((week, index) => (
-                            <div key={index} className="border rounded-lg p-3">
-                              <div className="flex items-center justify-between mb-3">
-                                <div className="font-medium">
-                                  هفته {JalaliCalendar.toPersianDigits(index + 1)} • {JalaliCalendar.format(week.start, 'jDD jMMM')} تا {JalaliCalendar.format(week.end, 'jDD jMMM')}
-                                </div>
-                                <div className="text-sm text-muted-foreground">
-                                  {JalaliCalendar.toPersianDigits(week.tasks.length)} وظیفه
-                                </div>
+                        <div className="border rounded-lg overflow-hidden">
+                          {/* Week Day Headers */}
+                          <div className="grid grid-cols-7 bg-muted/30">
+                            {weekDays.map((day, index) => (
+                              <div 
+                                key={index} 
+                                className={`p-2 text-center text-sm font-medium ${
+                                  index >= 5 ? 'text-destructive' : 'text-foreground'
+                                }`}
+                              >
+                                {day}
                               </div>
-                              
-                              {week.tasks.length > 0 ? (
-                                <div className="space-y-2">
-                                  {week.tasks.map((task) => (
-                                    <div key={task.id} className="flex items-center gap-2 text-sm">
-                                      <div className={`w-2 h-2 rounded-full ${
-                                        task.status === 'done' ? 'bg-success' :
-                                        task.status === 'in_progress' ? 'bg-accent' :
-                                        task.status === 'postponed' ? 'bg-destructive' :
-                                        'bg-muted-foreground'
-                                      }`} />
-                                      <span className="flex-1">{task.title}</span>
-                                      <span className="text-xs text-muted-foreground">
-                                        {task.scheduled_date ? JalaliCalendar.format(new Date(task.scheduled_date), 'jDD jMMM') : ''}
-                                      </span>
-                                      {task.status !== 'done' && (
-                                        <Button
-                                          size="sm"
-                                          variant="ghost"
-                                          className="h-6 w-6 p-0 text-success hover:bg-success/10"
-                                          onClick={() => handleCompleteTask(task.id)}
-                                        >
-                                          <CheckCircle size={12} />
-                                        </Button>
+                            ))}
+                          </div>
+                          
+                          {/* Calendar Days */}
+                          {weeks.map((week, weekIndex) => (
+                            <div key={weekIndex} className="grid grid-cols-7">
+                              {week.map((day, dayIndex) => (
+                                <div
+                                  key={dayIndex}
+                                  className={`
+                                    relative h-16 p-1 border-r border-b last:border-r-0 transition-smooth
+                                    ${day.isCurrentMonth ? 'bg-background hover:bg-muted/20' : 'bg-muted/10'}
+                                    ${day.isToday ? 'bg-primary/10 border-primary' : ''}
+                                    ${day.isWeekend && day.isCurrentMonth ? 'bg-destructive/5' : ''}
+                                  `}
+                                >
+                                  {/* Day Number */}
+                                  <div className="flex items-center justify-between mb-1">
+                                    <span className={`
+                                      text-xs font-medium
+                                      ${!day.isCurrentMonth ? 'text-muted-foreground' : 
+                                        day.isToday ? 'text-primary font-bold' :
+                                        day.isWeekend ? 'text-destructive' : 'text-foreground'}
+                                    `}>
+                                      {JalaliCalendar.toPersianDigits(day.date.format('jDD'))}
+                                    </span>
+                                    
+                                    {day.isToday && (
+                                      <div className="w-2 h-2 bg-primary rounded-full"></div>
+                                    )}
+                                  </div>
+                                  
+                                  {/* Task Indicators */}
+                                  {day.tasks.length > 0 && (
+                                    <div className="absolute bottom-1 left-1 right-1">
+                                      {day.tasks.length <= 3 ? (
+                                        <div className="flex gap-1">
+                                          {day.tasks.map((task, taskIndex) => (
+                                            <div
+                                              key={taskIndex}
+                                              className={`w-1.5 h-1.5 rounded-full ${
+                                                task.status === 'done' ? 'bg-success' :
+                                                task.status === 'in_progress' ? 'bg-accent' :
+                                                task.status === 'postponed' ? 'bg-destructive' :
+                                                'bg-muted-foreground'
+                                              }`}
+                                              title={task.title}
+                                            />
+                                          ))}
+                                        </div>
+                                      ) : (
+                                        <div className="flex items-center gap-1">
+                                          <div className="flex gap-0.5">
+                                            {day.tasks.slice(0, 2).map((task, taskIndex) => (
+                                              <div
+                                                key={taskIndex}
+                                                className={`w-1.5 h-1.5 rounded-full ${
+                                                  task.status === 'done' ? 'bg-success' :
+                                                  task.status === 'in_progress' ? 'bg-accent' :
+                                                  task.status === 'postponed' ? 'bg-destructive' :
+                                                  'bg-muted-foreground'
+                                                }`}
+                                              />
+                                            ))}
+                                          </div>
+                                          <span className="text-xs text-muted-foreground">
+                                            +{JalaliCalendar.toPersianDigits(day.tasks.length - 2)}
+                                          </span>
+                                        </div>
                                       )}
                                     </div>
-                                  ))}
+                                  )}
                                 </div>
-                              ) : (
-                                <div className="text-xs text-muted-foreground">بدون وظیفه</div>
-                              )}
+                              ))}
                             </div>
                           ))}
                         </div>
                       );
                     })()}
+                    
+                    {/* Legend */}
+                    <div className="flex items-center justify-center gap-6 text-xs text-muted-foreground pt-2">
+                      <div className="flex items-center gap-1">
+                        <div className="w-2 h-2 bg-success rounded-full"></div>
+                        <span>تکمیل شده</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <div className="w-2 h-2 bg-accent rounded-full"></div>
+                        <span>در حال انجام</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <div className="w-2 h-2 bg-muted-foreground rounded-full"></div>
+                        <span>منتظر</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <div className="w-2 h-2 bg-destructive rounded-full"></div>
+                        <span>تأخیر/تعطیل</span>
+                      </div>
+                    </div>
                   </div>
                 );
               })()}
