@@ -22,6 +22,8 @@ const taskSchema = z.object({
   category: z.string().min(1, 'انتخاب دسته‌بندی الزامی است'),
   scheduled_date: z.date().optional(),
   tags: z.string().optional(),
+  financial_type: z.enum(['spend', 'earn_once', 'earn_routine']).optional(),
+  earnings: z.string().optional(),
 });
 
 type TaskFormData = z.infer<typeof taskSchema>;
@@ -44,6 +46,8 @@ export function TaskForm({ onSuccess, defaultDate }: TaskFormProps) {
       category: '',
       scheduled_date: defaultDate,
       tags: '',
+      financial_type: undefined,
+      earnings: '',
     },
   });
 
@@ -57,6 +61,7 @@ export function TaskForm({ onSuccess, defaultDate }: TaskFormProps) {
         scheduled_date: data.scheduled_date ? data.scheduled_date.toISOString().split('T')[0] : null,
         tags: data.tags ? data.tags.split('،').map(tag => tag.trim()).filter(Boolean) : [],
         status: 'not_started' as const,
+        financial_type: data.financial_type || null,
       };
 
       await addTask(taskData);
@@ -167,6 +172,35 @@ export function TaskForm({ onSuccess, defaultDate }: TaskFormProps) {
           className="text-right"
         />
         <p className="text-xs text-muted-foreground">برچسب‌ها را با کاما (،) جدا کنید</p>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label>نوع مالی</Label>
+          <Select value={form.watch('financial_type') || ''} onValueChange={(value) => form.setValue('financial_type', value as any)}>
+            <SelectTrigger className="text-right">
+              <SelectValue placeholder="بدون پاداش مالی" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="earn_once">درآمد یکباره</SelectItem>
+              <SelectItem value="earn_routine">درآمد روتین</SelectItem>
+              <SelectItem value="spend">هزینه</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        {form.watch('financial_type') && (
+          <div className="space-y-2">
+            <Label htmlFor="earnings">مبلغ (تومان)</Label>
+            <Input
+              id="earnings"
+              type="number"
+              placeholder="۱۰۰۰۰"
+              {...form.register('earnings')}
+              className="text-right"
+            />
+          </div>
+        )}
       </div>
 
       <div className="flex gap-2 pt-4">

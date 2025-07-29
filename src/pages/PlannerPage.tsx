@@ -4,14 +4,16 @@ import { useTasks } from '@/hooks/useTasks';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Calendar, ChevronLeft, ChevronRight, Plus } from 'lucide-react';
+import { Calendar, ChevronLeft, ChevronRight, Plus, CheckCircle } from 'lucide-react';
 import { TaskModal } from '@/components/modals/TaskModal';
+import { useToast } from '@/hooks/use-toast';
 
 export default function PlannerPage() {
-  const { tasks, loading } = useTasks();
+  const { tasks, loading, completeTask, updateTask } = useTasks();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [activeTab, setActiveTab] = useState('daily');
   const [taskModalOpen, setTaskModalOpen] = useState(false);
+  const { toast } = useToast();
 
   const navigateDate = (direction: 'prev' | 'next') => {
     if (activeTab === 'daily') {
@@ -39,6 +41,22 @@ export default function PlannerPage() {
       return `هفته ${JalaliCalendar.format(startOfWeek, 'jDD jMMM')} تا ${JalaliCalendar.format(endOfWeek, 'jDD jMMM')}`;
     } else {
       return JalaliCalendar.formatPersian(currentDate, 'jMMMM jYYYY');
+    }
+  };
+
+  const handleCompleteTask = async (taskId: string) => {
+    try {
+      await completeTask(taskId);
+      toast({
+        title: 'وظیفه تکمیل شد',
+        description: 'وظیفه با موفقیت تکمیل شد و سوابق مالی ثبت گردید',
+      });
+    } catch (error) {
+      toast({
+        title: 'خطا',
+        description: 'مشکلی در تکمیل وظیفه پیش آمد',
+        variant: 'destructive',
+      });
     }
   };
 
@@ -152,7 +170,23 @@ export default function PlannerPage() {
                         <p className="text-sm text-muted-foreground">
                           {task.category} • {task.tags?.join('، ') || ''}
                         </p>
+                        {task.financial_type && (
+                          <p className="text-xs text-primary mt-1">
+                            💰 {task.financial_type === 'earn_once' ? 'درآمد یکباره' : 
+                                task.financial_type === 'earn_routine' ? 'درآمد روتین' : 'هزینه'}
+                          </p>
+                        )}
                       </div>
+                      {task.status !== 'done' && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="text-success hover:bg-success/10"
+                          onClick={() => handleCompleteTask(task.id)}
+                        >
+                          <CheckCircle size={16} />
+                        </Button>
+                      )}
                     </div>
                   ))}
                 </div>

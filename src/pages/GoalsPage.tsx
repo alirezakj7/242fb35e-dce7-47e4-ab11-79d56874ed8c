@@ -5,16 +5,18 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
-import { Target, Plus, Trophy, TrendingUp } from 'lucide-react';
+import { Target, Plus, Trophy, TrendingUp, CheckCircle } from 'lucide-react';
 import { JalaliCalendar } from '@/utils/jalali';
 import { wheelOfLifeCategories } from '@/constants/categories';
 import { GoalModal } from '@/components/modals/GoalModal';
+import { useToast } from '@/hooks/use-toast';
 
 export default function GoalsPage() {
-  const { goals, loading } = useGoals();
+  const { goals, loading, completeGoal } = useGoals();
   const [activeTab, setActiveTab] = useState('annual');
   const [goalModalOpen, setGoalModalOpen] = useState(false);
   const [goalModalType, setGoalModalType] = useState<'annual' | 'quarterly' | 'financial'>('annual');
+  const { toast } = useToast();
 
   const getGoalsByType = (type: 'annual' | 'quarterly' | 'financial') => {
     return goals.filter(goal => goal.type === type);
@@ -34,6 +36,22 @@ export default function GoalsPage() {
   const openGoalModal = (type: 'annual' | 'quarterly' | 'financial') => {
     setGoalModalType(type);
     setGoalModalOpen(true);
+  };
+
+  const handleCompleteGoal = async (goalId: string) => {
+    try {
+      await completeGoal(goalId);
+      toast({
+        title: 'هدف تکمیل شد',
+        description: 'تبریک! هدف با موفقیت تکمیل شد و پاداش شما ثبت گردید',
+      });
+    } catch (error) {
+      toast({
+        title: 'خطا',
+        description: 'مشکلی در تکمیل هدف پیش آمد',
+        variant: 'destructive',
+      });
+    }
   };
 
   const renderGoalCard = (goal: any) => {
@@ -97,12 +115,34 @@ export default function GoalsPage() {
               <span>{JalaliCalendar.formatPersian(goal.deadline, 'jDD jMMMM jYYYY')}</span>
             </div>
 
-            {/* Category */}
-            <div className="flex items-center gap-2">
+            {/* Category and Actions */}
+            <div className="flex items-center justify-between">
               <Badge variant="outline" className="text-xs">
                 {categoryInfo?.icon} {categoryInfo?.label}
               </Badge>
+              
+              {!goal.completed && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="text-success hover:bg-success/10 text-xs"
+                  onClick={() => handleCompleteGoal(goal.id)}
+                >
+                  <CheckCircle size={14} className="ml-1" />
+                  تکمیل
+                </Button>
+              )}
             </div>
+
+            {/* Reward Info */}
+            {(goal as any).reward_amount && (goal as any).reward_amount > 0 && (
+              <div className="bg-primary/10 rounded-lg p-2 text-xs">
+                <span>💰 پاداش تکمیل: </span>
+                <span className="font-medium text-primary">
+                  {JalaliCalendar.toPersianDigits((goal as any).reward_amount.toLocaleString())} تومان
+                </span>
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>

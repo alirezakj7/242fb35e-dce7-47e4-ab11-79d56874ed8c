@@ -28,6 +28,7 @@ const goalSchema = z.object({
   }),
   target_amount: z.string().optional(),
   current_amount: z.string().optional(),
+  reward_amount: z.string().optional(),
 });
 
 type GoalFormData = z.infer<typeof goalSchema>;
@@ -51,6 +52,7 @@ export function GoalForm({ onSuccess, defaultType }: GoalFormProps) {
       category: '',
       target_amount: '',
       current_amount: '0',
+      reward_amount: '',
     },
   });
 
@@ -218,6 +220,18 @@ export function GoalForm({ onSuccess, defaultType }: GoalFormProps) {
           </div>
         </div>
       )}
+
+      <div className="space-y-2">
+        <Label htmlFor="reward_amount">پاداش تکمیل (تومان)</Label>
+        <Input
+          id="reward_amount"
+          type="number"
+          placeholder="۵۰۰۰۰"
+          {...form.register('reward_amount')}
+          className="text-right"
+        />
+        <p className="text-xs text-muted-foreground">پاداشی که پس از تکمیل هدف دریافت خواهید کرد</p>
+      </div>
 
       <div className="flex gap-2 pt-4">
         <Button type="submit" disabled={isSubmitting} className="flex-1">

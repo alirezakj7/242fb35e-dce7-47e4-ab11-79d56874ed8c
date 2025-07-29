@@ -68,6 +68,46 @@ export function useGoals() {
     }
   };
 
+  const completeGoal = async (goalId: string) => {
+    if (!user) return;
+
+    try {
+      const goal = goals.find(g => g.id === goalId);
+      if (!goal) throw new Error('Goal not found');
+
+      // Update goal as completed
+      const { data: updatedGoal, error: goalError } = await supabase
+        .from('goals')
+        .update({ completed: true })
+        .eq('id', goalId)
+        .select()
+        .single();
+
+      if (goalError) throw goalError;
+
+      // Create financial record for reward if goal has reward amount
+      const rewardAmount = (goal as any).reward_amount;
+      if (rewardAmount && rewardAmount > 0) {
+        await supabase
+          .from('financial_records')
+          .insert({
+            user_id: user.id,
+            type: 'income',
+            amount: rewardAmount,
+            description: `پاداش تکمیل هدف: ${goal.title}`,
+            category: goal.category,
+            date: new Date().toISOString().split('T')[0]
+          });
+      }
+
+      setGoals(prev => prev.map(g => g.id === goalId ? updatedGoal : g));
+      return updatedGoal;
+    } catch (error) {
+      console.error('Error completing goal:', error);
+      throw error;
+    }
+  };
+
   const deleteGoal = async (id: string) => {
     try {
       const { error } = await supabase
@@ -93,6 +133,7 @@ export function useGoals() {
     addGoal,
     updateGoal,
     deleteGoal,
+    completeGoal,
     refetch: fetchGoals
   };
 }
