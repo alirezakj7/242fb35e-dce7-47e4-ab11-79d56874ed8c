@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom';
 import { useTasks } from '@/hooks/useTasks';
 import { useGoals } from '@/hooks/useGoals';
 import { useHabits } from '@/hooks/useHabits';
-import { useFinancialRecords } from '@/hooks/useFinancialRecords';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
@@ -22,32 +21,12 @@ import {
 import { JalaliCalendar } from '@/utils/jalali';
 import { wheelOfLifeCategories } from '@/constants/categories';
 import { TaskModal } from '@/components/modals/TaskModal';
-import { UserProfile } from '@/components/UserProfile';
 
 const Index = () => {
   const { tasks, loading: tasksLoading } = useTasks();
   const { goals, loading: goalsLoading } = useGoals();
   const { habits, loading: habitsLoading } = useHabits();
-  const { records: financialRecords } = useFinancialRecords();
   const [taskModalOpen, setTaskModalOpen] = useState(false);
-
-  // Get this month's financial summary
-  const thisMonth = new Date();
-  const monthlyRecords = financialRecords.filter(record => {
-    const recordDate = new Date(record.date);
-    return recordDate.getMonth() === thisMonth.getMonth() && 
-           recordDate.getFullYear() === thisMonth.getFullYear();
-  });
-
-  const monthlyIncome = monthlyRecords
-    .filter(record => record.type === 'income')
-    .reduce((sum, record) => sum + Number(record.amount), 0);
-
-  const monthlyExpense = monthlyRecords
-    .filter(record => record.type === 'expense')
-    .reduce((sum, record) => sum + Number(record.amount), 0);
-
-  const netCashFlow = monthlyIncome - monthlyExpense;
 
   const getTodayTasks = () => {
     const today = new Date().toISOString().split('T')[0];
@@ -101,9 +80,6 @@ const Index = () => {
         </div>
       </div>
 
-      {/* User Profile */}
-      <UserProfile />
-
       {/* Quick Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         <Card className="shadow-card hover:shadow-elegant transition-smooth">
@@ -139,12 +115,10 @@ const Index = () => {
         <Card className="shadow-card hover:shadow-elegant transition-smooth">
           <CardContent className="p-4 text-center">
             <Wallet className="mx-auto mb-2 text-primary" size={24} />
-            <div className={`text-xl font-bold ${
-              netCashFlow >= 0 ? 'text-success' : 'text-destructive'
-            }`}>
-              {JalaliCalendar.toPersianDigits(Math.abs(netCashFlow).toLocaleString())}
+            <div className="text-xl font-bold text-primary">
+              ۰
             </div>
-            <div className="text-xs text-muted-foreground">جریان نقدی ماه</div>
+            <div className="text-xs text-muted-foreground">جریان نقدی</div>
           </CardContent>
         </Card>
       </div>
