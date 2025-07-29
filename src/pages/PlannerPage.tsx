@@ -32,6 +32,37 @@ export default function PlannerPage() {
     );
   };
 
+  const getWeekTasks = () => {
+    const startOfWeek = JalaliCalendar.startOfWeek(currentDate);
+    const endOfWeek = JalaliCalendar.endOfWeek(currentDate);
+    
+    return tasks.filter(task => {
+      if (!task.scheduled_date) return false;
+      const taskDate = new Date(task.scheduled_date);
+      return taskDate >= startOfWeek.toDate() && taskDate <= endOfWeek.toDate();
+    });
+  };
+
+  const getMonthTasks = () => {
+    const startOfMonth = JalaliCalendar.startOfMonth(currentDate);
+    const endOfMonth = JalaliCalendar.endOfMonth(currentDate);
+    
+    return tasks.filter(task => {
+      if (!task.scheduled_date) return false;
+      const taskDate = new Date(task.scheduled_date);
+      return taskDate >= startOfMonth.toDate() && taskDate <= endOfMonth.toDate();
+    });
+  };
+
+  const getTasksByStatus = (taskList: any[]) => {
+    return {
+      todo: taskList.filter(t => t.status === 'todo'),
+      in_progress: taskList.filter(t => t.status === 'in_progress'),
+      done: taskList.filter(t => t.status === 'done'),
+      postponed: taskList.filter(t => t.status === 'postponed')
+    };
+  };
+
   const formatDisplayDate = () => {
     if (activeTab === 'daily') {
       return JalaliCalendar.formatPersian(currentDate, 'dddd، jDD jMMMM jYYYY');
@@ -202,13 +233,93 @@ export default function PlannerPage() {
                 📊 نمای هفتگی
               </CardTitle>
               <CardDescription>
-                برنامه‌ریزی و مرور کلی هفته
+                {JalaliCalendar.toPersianDigits(getWeekTasks().length)} وظیفه برای این هفته
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="text-center py-8 text-muted-foreground">
-                <p>نمای هفتگی در حال توسعه است</p>
-              </div>
+              {(() => {
+                const weekTasks = getWeekTasks();
+                const tasksByStatus = getTasksByStatus(weekTasks);
+                
+                return (
+                  <div className="space-y-4">
+                    {/* Progress Overview */}
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="bg-muted/30 p-3 rounded-lg">
+                        <div className="text-sm text-muted-foreground">تکمیل شده</div>
+                        <div className="text-lg font-bold text-success">
+                          {JalaliCalendar.toPersianDigits(tasksByStatus.done.length)}
+                        </div>
+                      </div>
+                      <div className="bg-muted/30 p-3 rounded-lg">
+                        <div className="text-sm text-muted-foreground">باقی مانده</div>
+                        <div className="text-lg font-bold text-primary">
+                          {JalaliCalendar.toPersianDigits(weekTasks.length - tasksByStatus.done.length)}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Tasks by Day */}
+                    {(() => {
+                      const startOfWeek = JalaliCalendar.startOfWeek(currentDate);
+                      const weekDays = Array.from({ length: 7 }, (_, i) => 
+                        JalaliCalendar.addDays(startOfWeek, i)
+                      );
+                      
+                      return (
+                        <div className="space-y-3">
+                          {weekDays.map((day, index) => {
+                            const dayTasks = weekTasks.filter(task => 
+                              task.scheduled_date === day.format('YYYY-MM-DD')
+                            );
+                            const dayName = ['شنبه', 'یکشنبه', 'دوشنبه', 'سه‌شنبه', 'چهارشنبه', 'پنج‌شنبه', 'جمعه'][index];
+                            
+                            return (
+                              <div key={index} className="border rounded-lg p-3">
+                                <div className="flex items-center justify-between mb-2">
+                                  <div className="font-medium">
+                                    {dayName} {JalaliCalendar.format(day, 'jDD jMMM')}
+                                  </div>
+                                  <div className="text-sm text-muted-foreground">
+                                    {JalaliCalendar.toPersianDigits(dayTasks.length)} وظیفه
+                                  </div>
+                                </div>
+                                {dayTasks.length > 0 ? (
+                                  <div className="space-y-2">
+                                    {dayTasks.map((task) => (
+                                      <div key={task.id} className="flex items-center gap-2 text-sm">
+                                        <div className={`w-2 h-2 rounded-full ${
+                                          task.status === 'done' ? 'bg-success' :
+                                          task.status === 'in_progress' ? 'bg-accent' :
+                                          task.status === 'postponed' ? 'bg-destructive' :
+                                          'bg-muted-foreground'
+                                        }`} />
+                                        <span className="flex-1">{task.title}</span>
+                                        {task.status !== 'done' && (
+                                          <Button
+                                            size="sm"
+                                            variant="ghost"
+                                            className="h-6 w-6 p-0 text-success hover:bg-success/10"
+                                            onClick={() => handleCompleteTask(task.id)}
+                                          >
+                                            <CheckCircle size={12} />
+                                          </Button>
+                                        )}
+                                      </div>
+                                    ))}
+                                  </div>
+                                ) : (
+                                  <div className="text-xs text-muted-foreground">بدون وظیفه</div>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      );
+                    })()}
+                  </div>
+                );
+              })()}
             </CardContent>
           </Card>
         </TabsContent>
@@ -220,13 +331,115 @@ export default function PlannerPage() {
                 🗓️ نمای ماهانه
               </CardTitle>
               <CardDescription>
-                برنامه‌ریزی بلندمدت و اهداف ماهانه
+                {JalaliCalendar.toPersianDigits(getMonthTasks().length)} وظیفه برای این ماه
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="text-center py-8 text-muted-foreground">
-                <p>نمای ماهانه در حال توسعه است</p>
-              </div>
+              {(() => {
+                const monthTasks = getMonthTasks();
+                const tasksByStatus = getTasksByStatus(monthTasks);
+                
+                return (
+                  <div className="space-y-4">
+                    {/* Monthly Progress */}
+                    <div className="grid grid-cols-4 gap-3">
+                      <div className="bg-success/10 p-3 rounded-lg text-center">
+                        <div className="text-xs text-muted-foreground">تکمیل</div>
+                        <div className="text-lg font-bold text-success">
+                          {JalaliCalendar.toPersianDigits(tasksByStatus.done.length)}
+                        </div>
+                      </div>
+                      <div className="bg-accent/10 p-3 rounded-lg text-center">
+                        <div className="text-xs text-muted-foreground">در حال انجام</div>
+                        <div className="text-lg font-bold text-accent">
+                          {JalaliCalendar.toPersianDigits(tasksByStatus.in_progress.length)}
+                        </div>
+                      </div>
+                      <div className="bg-muted/30 p-3 rounded-lg text-center">
+                        <div className="text-xs text-muted-foreground">منتظر</div>
+                        <div className="text-lg font-bold text-muted-foreground">
+                          {JalaliCalendar.toPersianDigits(tasksByStatus.todo.length)}
+                        </div>
+                      </div>
+                      <div className="bg-destructive/10 p-3 rounded-lg text-center">
+                        <div className="text-xs text-muted-foreground">تأخیر</div>
+                        <div className="text-lg font-bold text-destructive">
+                          {JalaliCalendar.toPersianDigits(tasksByStatus.postponed.length)}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Tasks by Week */}
+                    {(() => {
+                      const startOfMonth = JalaliCalendar.startOfMonth(currentDate);
+                      const endOfMonth = JalaliCalendar.endOfMonth(currentDate);
+                      const weeks = [];
+                      
+                      let currentWeekStart = JalaliCalendar.startOfWeek(startOfMonth);
+                      while (currentWeekStart.isBefore(endOfMonth) || currentWeekStart.isSame(endOfMonth, 'week')) {
+                        const weekEnd = JalaliCalendar.endOfWeek(currentWeekStart);
+                        weeks.push({
+                          start: currentWeekStart.clone(),
+                          end: weekEnd.clone(),
+                          tasks: monthTasks.filter(task => {
+                            const taskDate = new Date(task.scheduled_date || '');
+                            return taskDate >= currentWeekStart.toDate() && taskDate <= weekEnd.toDate();
+                          })
+                        });
+                        currentWeekStart = JalaliCalendar.addDays(currentWeekStart, 7);
+                      }
+                      
+                      return (
+                        <div className="space-y-3">
+                          {weeks.map((week, index) => (
+                            <div key={index} className="border rounded-lg p-3">
+                              <div className="flex items-center justify-between mb-3">
+                                <div className="font-medium">
+                                  هفته {JalaliCalendar.toPersianDigits(index + 1)} • {JalaliCalendar.format(week.start, 'jDD jMMM')} تا {JalaliCalendar.format(week.end, 'jDD jMMM')}
+                                </div>
+                                <div className="text-sm text-muted-foreground">
+                                  {JalaliCalendar.toPersianDigits(week.tasks.length)} وظیفه
+                                </div>
+                              </div>
+                              
+                              {week.tasks.length > 0 ? (
+                                <div className="space-y-2">
+                                  {week.tasks.map((task) => (
+                                    <div key={task.id} className="flex items-center gap-2 text-sm">
+                                      <div className={`w-2 h-2 rounded-full ${
+                                        task.status === 'done' ? 'bg-success' :
+                                        task.status === 'in_progress' ? 'bg-accent' :
+                                        task.status === 'postponed' ? 'bg-destructive' :
+                                        'bg-muted-foreground'
+                                      }`} />
+                                      <span className="flex-1">{task.title}</span>
+                                      <span className="text-xs text-muted-foreground">
+                                        {task.scheduled_date ? JalaliCalendar.format(new Date(task.scheduled_date), 'jDD jMMM') : ''}
+                                      </span>
+                                      {task.status !== 'done' && (
+                                        <Button
+                                          size="sm"
+                                          variant="ghost"
+                                          className="h-6 w-6 p-0 text-success hover:bg-success/10"
+                                          onClick={() => handleCompleteTask(task.id)}
+                                        >
+                                          <CheckCircle size={12} />
+                                        </Button>
+                                      )}
+                                    </div>
+                                  ))}
+                                </div>
+                              ) : (
+                                <div className="text-xs text-muted-foreground">بدون وظیفه</div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      );
+                    })()}
+                  </div>
+                );
+              })()}
             </CardContent>
           </Card>
         </TabsContent>
