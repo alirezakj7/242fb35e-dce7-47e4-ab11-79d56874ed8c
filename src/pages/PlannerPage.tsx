@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { JalaliCalendar } from '@/utils/jalali';
 import { useTasks } from '@/hooks/useTasks';
 import { Button } from '@/components/ui/button';
@@ -7,6 +8,7 @@ import { TaskModal } from '@/components/modals/TaskModal';
 import { useToast } from '@/hooks/use-toast';
 
 export default function PlannerPage() {
+  const navigate = useNavigate();
   const { tasks, loading } = useTasks();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [taskModalOpen, setTaskModalOpen] = useState(false);
@@ -23,14 +25,10 @@ export default function PlannerPage() {
     setCurrentDate(new Date());
   };
 
-  // Navigate to daily view (simulated by showing selected date)
+  // Navigate to daily view
   const handleDayTap = (date: Date) => {
-    setSelectedDate(date);
-    // In a real app, this would navigate to daily planner view
-    toast({
-      title: 'نمای روزانه',
-      description: `انتقال به ${JalaliCalendar.formatPersian(date, 'jDD jMMMM jYYYY')}`,
-    });
+    const dateStr = JalaliCalendar.format(date, 'YYYY-MM-DD');
+    navigate(`/planner/daily?date=${dateStr}`);
   };
 
   // Get tasks for the current month
@@ -137,16 +135,31 @@ export default function PlannerPage() {
             {JalaliCalendar.formatPersian(currentDate, 'jMMMM jYYYY')}
           </button>
 
-          {/* "Heute" (Today) Button */}
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={goToToday}
-            className="flex items-center gap-2"
-          >
-            <Home size={14} />
-            امروز
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => navigate('/planner/weekly')}
+            >
+              هفتگی
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => navigate('/planner/daily')}
+            >
+              روزانه
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={goToToday}
+              className="flex items-center gap-2"
+            >
+              <Home size={14} />
+              امروز
+            </Button>
+          </div>
         </div>
       </div>
 

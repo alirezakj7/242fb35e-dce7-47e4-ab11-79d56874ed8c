@@ -10,6 +10,8 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 // Pages
 import Index from "./pages/Index";
 import PlannerPage from "./pages/PlannerPage";
+import DailyPlannerPage from "./pages/DailyPlannerPage";
+import WeeklyPlannerPage from "./pages/WeeklyPlannerPage";
 import GoalsPage from "./pages/GoalsPage";
 import HabitsPage from "./pages/HabitsPage";
 import FinancePage from "./pages/FinancePage";
@@ -34,6 +36,8 @@ const App = () => (
                   <Routes>
                     <Route path="/" element={<Index />} />
                     <Route path="/planner" element={<PlannerPage />} />
+                    <Route path="/planner/daily" element={<DailyPlannerPage />} />
+                    <Route path="/planner/weekly" element={<WeeklyPlannerPage />} />
                     <Route path="/goals" element={<GoalsPage />} />
                     <Route path="/habits" element={<HabitsPage />} />
                     <Route path="/finance" element={<FinancePage />} />
