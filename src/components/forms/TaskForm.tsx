@@ -145,7 +145,10 @@ export function TaskForm({ onSuccess, defaultDate }: TaskFormProps) {
             >
               <CalendarIcon className="ml-2 h-4 w-4" />
               {form.watch('scheduled_date') ? (
-                format(form.watch('scheduled_date')!, "PPP")
+                (() => {
+                  const date = form.watch('scheduled_date');
+                  return date && !isNaN(date.getTime()) ? format(date, "PPP") : 'تاریخ نامعتبر';
+                })()
               ) : (
                 <span>انتخاب تاریخ</span>
               )}

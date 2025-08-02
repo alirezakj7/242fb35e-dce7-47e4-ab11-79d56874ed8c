@@ -12,9 +12,15 @@ export default function DailyPlannerPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const dateParam = searchParams.get('date');
-  const [currentDate, setCurrentDate] = useState(
-    dateParam ? new Date(dateParam) : new Date()
-  );
+  const [currentDate, setCurrentDate] = useState(() => {
+    if (dateParam) {
+      // Convert Persian digits to English and create date
+      const englishDateParam = JalaliCalendar.toEnglishDigits(decodeURIComponent(dateParam));
+      const parsedDate = new Date(englishDateParam);
+      return isNaN(parsedDate.getTime()) ? new Date() : parsedDate;
+    }
+    return new Date();
+  });
   const [taskModalOpen, setTaskModalOpen] = useState(false);
   const { tasks, loading, completeTask } = useTasks();
   const { toast } = useToast();
