@@ -12,7 +12,7 @@ export default function WeeklyPlannerPage() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [taskModalOpen, setTaskModalOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
-  const { tasks, loading } = useTasks();
+  const { tasks, loading, refetch } = useTasks();
 
   // Navigate to previous/next week
   const navigateWeek = (direction: 'prev' | 'next') => {

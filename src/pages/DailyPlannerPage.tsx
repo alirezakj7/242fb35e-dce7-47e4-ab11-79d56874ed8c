@@ -7,6 +7,8 @@ import { ArrowLeft, ArrowRight, Calendar, Plus } from 'lucide-react';
 import { TaskModal } from '@/components/modals/TaskModal';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent } from '@/components/ui/card';
+import { TaskTimer } from '@/components/TaskTimer';
+import { TaskProgress } from '@/components/TaskProgress';
 
 export default function DailyPlannerPage() {
   const navigate = useNavigate();
@@ -22,7 +24,7 @@ export default function DailyPlannerPage() {
     return new Date();
   });
   const [taskModalOpen, setTaskModalOpen] = useState(false);
-  const { tasks, loading, completeTask } = useTasks();
+  const { tasks, loading, completeTask, refetch } = useTasks();
   const { toast } = useToast();
 
   // Navigate to previous/next day
@@ -83,6 +85,8 @@ export default function DailyPlannerPage() {
 
   const dayTasks = getDayTasks();
   const completedTasks = dayTasks.filter(task => task.status === 'done');
+  const inProgressTasks = dayTasks.filter(task => task.status === 'in_progress');
+  const postponedTasks = dayTasks.filter(task => task.status === 'postponed');
   const pendingTasks = dayTasks.filter(task => task.status !== 'done');
 
   return (
@@ -160,6 +164,16 @@ export default function DailyPlannerPage() {
           </Card>
         </div>
 
+        {/* Daily Progress */}
+        {dayTasks.length > 0 && (
+          <TaskProgress
+            totalTasks={dayTasks.length}
+            completedTasks={completedTasks.length}
+            inProgressTasks={inProgressTasks.length}
+            postponedTasks={postponedTasks.length}
+          />
+        )}
+
         {/* Tasks List */}
         <div className="space-y-4">
           {/* Pending Tasks */}
@@ -170,23 +184,28 @@ export default function DailyPlannerPage() {
                 {pendingTasks.map(task => (
                   <Card key={task.id} className={`border-l-4 ${getCategoryColor(task.category)}`}>
                     <CardContent className="p-4">
-                      <div className="flex items-center justify-between">
-                        <div className="flex-1">
+                      <div className="space-y-3">
+                        <div>
                           <h4 className="font-medium">{task.title}</h4>
                           {task.description && (
                             <p className="text-sm text-muted-foreground mt-1">{task.description}</p>
                           )}
                           <div className="flex items-center gap-2 mt-2">
                             <span className="text-xs bg-muted px-2 py-1 rounded">{task.category}</span>
+                            {task.tags && task.tags.length > 0 && task.tags.map(tag => (
+                              <span key={tag} className="text-xs bg-primary/10 text-primary px-2 py-1 rounded">
+                                {tag}
+                              </span>
+                            ))}
                           </div>
                         </div>
-                        <Button
-                          size="sm"
-                          onClick={() => handleTaskComplete(task.id)}
-                          className="mr-2"
-                        >
-                          تکمیل
-                        </Button>
+                        
+                        <TaskTimer
+                          taskId={task.id}
+                          currentStatus={task.status}
+                          timeSpent={task.time_spent || 0}
+                          onStatusChange={refetch}
+                        />
                       </div>
                     </CardContent>
                   </Card>
@@ -203,12 +222,28 @@ export default function DailyPlannerPage() {
                 {completedTasks.map(task => (
                   <Card key={task.id} className="opacity-60">
                     <CardContent className="p-4">
-                      <div className="flex items-center gap-2">
-                        <div className="w-4 h-4 bg-green-500 rounded-full flex-shrink-0"></div>
-                        <div className="flex-1">
-                          <h4 className="font-medium line-through">{task.title}</h4>
-                          <span className="text-xs bg-muted px-2 py-1 rounded">{task.category}</span>
+                      <div className="space-y-3">
+                        <div className="flex items-center gap-2">
+                          <div className="w-4 h-4 bg-green-500 rounded-full flex-shrink-0"></div>
+                          <div className="flex-1">
+                            <h4 className="font-medium line-through">{task.title}</h4>
+                            <div className="flex items-center gap-2 mt-1">
+                              <span className="text-xs bg-muted px-2 py-1 rounded">{task.category}</span>
+                              {task.tags && task.tags.length > 0 && task.tags.map(tag => (
+                                <span key={tag} className="text-xs bg-primary/10 text-primary px-2 py-1 rounded">
+                                  {tag}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
                         </div>
+                        
+                        <TaskTimer
+                          taskId={task.id}
+                          currentStatus={task.status}
+                          timeSpent={task.time_spent || 0}
+                          onStatusChange={refetch}
+                        />
                       </div>
                     </CardContent>
                   </Card>
