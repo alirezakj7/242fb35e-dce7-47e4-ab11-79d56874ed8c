@@ -3,12 +3,13 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { JalaliCalendar } from '@/utils/jalali';
 import { useTasks } from '@/hooks/useTasks';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, ArrowRight, Calendar, Plus } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Calendar, Plus, Clock } from 'lucide-react';
 import { TaskModal } from '@/components/modals/TaskModal';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent } from '@/components/ui/card';
-import { TaskTimer } from '@/components/TaskTimer';
 import { TaskProgress } from '@/components/TaskProgress';
+import { TimeBlockSchedule } from '@/components/TimeBlockSchedule';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export default function DailyPlannerPage() {
   const navigate = useNavigate();
@@ -24,6 +25,7 @@ export default function DailyPlannerPage() {
     return new Date();
   });
   const [taskModalOpen, setTaskModalOpen] = useState(false);
+  const [viewMode, setViewMode] = useState<'list' | 'timeline'>('list');
   const { tasks, loading, completeTask, refetch } = useTasks();
   const { toast } = useToast();
 
@@ -164,6 +166,28 @@ export default function DailyPlannerPage() {
           </Card>
         </div>
 
+        {/* View Mode Toggle */}
+        <div className="flex items-center gap-2 mb-4">
+          <Button
+            variant={viewMode === 'list' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setViewMode('list')}
+            className="flex items-center gap-2"
+          >
+            <Calendar size={16} />
+            لیست
+          </Button>
+          <Button
+            variant={viewMode === 'timeline' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setViewMode('timeline')}
+            className="flex items-center gap-2"
+          >
+            <Clock size={16} />
+            زمان‌بندی
+          </Button>
+        </div>
+
         {/* Daily Progress */}
         {dayTasks.length > 0 && (
           <TaskProgress
@@ -174,61 +198,30 @@ export default function DailyPlannerPage() {
           />
         )}
 
-        {/* Tasks List */}
-        <div className="space-y-4">
-          {/* Pending Tasks */}
-          {pendingTasks.length > 0 && (
-            <div>
-              <h3 className="text-lg font-semibold mb-3">وظایف امروز</h3>
-              <div className="space-y-2">
-                {pendingTasks.map(task => (
-                  <Card key={task.id} className={`border-l-4 ${getCategoryColor(task.category)}`}>
-                    <CardContent className="p-4">
-                      <div className="space-y-3">
-                        <div>
-                          <h4 className="font-medium">{task.title}</h4>
-                          {task.description && (
-                            <p className="text-sm text-muted-foreground mt-1">{task.description}</p>
-                          )}
-                          <div className="flex items-center gap-2 mt-2">
-                            <span className="text-xs bg-muted px-2 py-1 rounded">{task.category}</span>
-                            {task.tags && task.tags.length > 0 && task.tags.map(tag => (
-                              <span key={tag} className="text-xs bg-primary/10 text-primary px-2 py-1 rounded">
-                                {tag}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                        
-                        <TaskTimer
-                          taskId={task.id}
-                          currentStatus={task.status}
-                          timeSpent={task.time_spent || 0}
-                          onStatusChange={refetch}
-                        />
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Completed Tasks */}
-          {completedTasks.length > 0 && (
-            <div>
-              <h3 className="text-lg font-semibold mb-3 text-green-600">تکمیل شده</h3>
-              <div className="space-y-2">
-                {completedTasks.map(task => (
-                  <Card key={task.id} className="opacity-60">
-                    <CardContent className="p-4">
-                      <div className="space-y-3">
-                        <div className="flex items-center gap-2">
-                          <div className="w-4 h-4 bg-green-500 rounded-full flex-shrink-0"></div>
-                          <div className="flex-1">
-                            <h4 className="font-medium line-through">{task.title}</h4>
-                            <div className="flex items-center gap-2 mt-1">
+        {/* Tasks Content */}
+        <Tabs value={viewMode} onValueChange={(value) => setViewMode(value as 'list' | 'timeline')}>
+          <TabsContent value="list" className="space-y-4">
+            {/* Pending Tasks */}
+            {pendingTasks.length > 0 && (
+              <div>
+                <h3 className="text-lg font-semibold mb-3">وظایف امروز</h3>
+                <div className="space-y-2">
+                  {pendingTasks.map(task => (
+                    <Card key={task.id} className={`border-l-4 ${getCategoryColor(task.category)}`}>
+                      <CardContent className="p-4">
+                        <div className="space-y-3">
+                          <div>
+                            <h4 className="font-medium">{task.title}</h4>
+                            {task.description && (
+                              <p className="text-sm text-muted-foreground mt-1">{task.description}</p>
+                            )}
+                            <div className="flex items-center gap-2 mt-2">
                               <span className="text-xs bg-muted px-2 py-1 rounded">{task.category}</span>
+                              {task.scheduled_time && (
+                                <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                                  {JalaliCalendar.toPersianDigits(task.scheduled_time)}
+                                </span>
+                              )}
                               {task.tags && task.tags.length > 0 && task.tags.map(tag => (
                                 <span key={tag} className="text-xs bg-primary/10 text-primary px-2 py-1 rounded">
                                   {tag}
@@ -237,31 +230,66 @@ export default function DailyPlannerPage() {
                             </div>
                           </div>
                         </div>
-                        
-                        <TaskTimer
-                          taskId={task.id}
-                          currentStatus={task.status}
-                          timeSpent={task.time_spent || 0}
-                          onStatusChange={refetch}
-                        />
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
               </div>
-            </div>
-          )}
+            )}
 
-          {dayTasks.length === 0 && (
-            <div className="text-center py-12">
-              <div className="text-muted-foreground mb-4">هیچ وظیفه‌ای برای امروز وجود ندارد</div>
-              <Button onClick={() => setTaskModalOpen(true)}>
-                <Plus size={16} className="ml-2" />
-                افزودن وظیفه
-              </Button>
-            </div>
-          )}
-        </div>
+            {/* Completed Tasks */}
+            {completedTasks.length > 0 && (
+              <div>
+                <h3 className="text-lg font-semibold mb-3 text-green-600">تکمیل شده</h3>
+                <div className="space-y-2">
+                  {completedTasks.map(task => (
+                    <Card key={task.id} className="opacity-60">
+                      <CardContent className="p-4">
+                        <div className="flex items-center gap-2">
+                          <div className="w-4 h-4 bg-green-500 rounded-full flex-shrink-0"></div>
+                          <div className="flex-1">
+                            <h4 className="font-medium line-through">{task.title}</h4>
+                            <div className="flex items-center gap-2 mt-1">
+                              <span className="text-xs bg-muted px-2 py-1 rounded">{task.category}</span>
+                              {task.scheduled_time && (
+                                <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                                  {JalaliCalendar.toPersianDigits(task.scheduled_time)}
+                                </span>
+                              )}
+                              {task.tags && task.tags.length > 0 && task.tags.map(tag => (
+                                <span key={tag} className="text-xs bg-primary/10 text-primary px-2 py-1 rounded">
+                                  {tag}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {dayTasks.length === 0 && (
+              <div className="text-center py-12">
+                <div className="text-muted-foreground mb-4">هیچ وظیفه‌ای برای امروز وجود ندارد</div>
+                <Button onClick={() => setTaskModalOpen(true)}>
+                  <Plus size={16} className="ml-2" />
+                  افزودن وظیفه
+                </Button>
+              </div>
+            )}
+          </TabsContent>
+
+          <TabsContent value="timeline">
+            <TimeBlockSchedule 
+              tasks={dayTasks}
+              currentDate={currentDate}
+              onRefetch={refetch}
+            />
+          </TabsContent>
+        </Tabs>
       </div>
 
       {/* Floating Action Button */}
