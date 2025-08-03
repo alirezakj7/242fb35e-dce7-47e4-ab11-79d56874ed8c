@@ -25,6 +25,8 @@ export function TimeBlockSchedule({ tasks, currentDate, onRefetch }: TimeBlockSc
   const [activeTask, setActiveTask] = useState<Task | null>(null);
   const { updateTask } = useTasks();
   const { toast } = useToast();
+  
+  console.log('TimeBlockSchedule received tasks:', tasks.length, tasks);
 
   const getCategoryColor = (category: string) => {
     const categoryColors: Record<string, string> = {
@@ -41,12 +43,14 @@ export function TimeBlockSchedule({ tasks, currentDate, onRefetch }: TimeBlockSc
   };
 
   const getTasksForTimeSlot = (timeSlot: string) => {
-    return tasks.filter(task => {
+    const filteredTasks = tasks.filter(task => {
       if (!task.scheduled_time) return false;
       const taskHour = task.scheduled_time.split(':')[0].padStart(2, '0');
       const slotHour = timeSlot.split(':')[0];
       return taskHour === slotHour;
     });
+    console.log(`Tasks for time slot ${timeSlot}:`, filteredTasks);
+    return filteredTasks;
   };
 
   const getUnscheduledTasks = () => {
@@ -86,6 +90,7 @@ export function TimeBlockSchedule({ tasks, currentDate, onRefetch }: TimeBlockSc
         // Move to specific time slot
         const timeSlot = over.id.replace('time-', '');
         const currentDateStr = JalaliCalendar.format(currentDate, 'YYYY-MM-DD');
+        console.log('Updating task with:', { scheduled_time: timeSlot, scheduled_date: currentDateStr });
         
         await updateTask(task.id, {
           scheduled_time: timeSlot,
