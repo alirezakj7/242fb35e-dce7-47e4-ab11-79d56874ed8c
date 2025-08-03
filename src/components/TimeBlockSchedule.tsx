@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { DndContext, DragEndEvent, DragOverlay, DragStartEvent } from '@dnd-kit/core';
+import { DndContext, DragEndEvent, DragOverlay, DragStartEvent, useDroppable } from '@dnd-kit/core';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DraggableTaskCard } from './DraggableTaskCard';
 import { JalaliCalendar } from '@/utils/jalali';
@@ -139,55 +139,19 @@ export function TimeBlockSchedule({ tasks, currentDate, onRefetch }: TimeBlockSc
             const slotTasks = getTasksForTimeSlot(timeSlot);
             
             return (
-              <Card 
-                key={timeSlot}
-                id={`time-${timeSlot}`}
-                className="min-h-[80px] hover:bg-muted/50 transition-colors"
-              >
-                <CardContent className="p-4">
-                  <div className="flex items-start gap-4">
-                    <div className="w-16 text-sm font-medium text-muted-foreground">
-                      {JalaliCalendar.toPersianDigits(timeSlot)}
-                    </div>
-                    
-                    <div className="flex-1 space-y-2">
-                      {slotTasks.map(task => (
-                        <DraggableTaskCard
-                          key={task.id}
-                          task={task}
-                          categoryColor={getCategoryColor(task.category)}
-                          onRefetch={onRefetch}
-                          timeSlot={timeSlot}
-                        />
-                      ))}
-                      
-                      {slotTasks.length === 0 && (
-                        <div className="border-2 border-dashed border-muted rounded-lg p-4 text-center text-muted-foreground">
-                          وظیفه‌ای برای این ساعت تعریف نشده
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+              <TimeSlotDropZone 
+                key={timeSlot} 
+                timeSlot={timeSlot} 
+                slotTasks={slotTasks}
+                onRefetch={onRefetch}
+                getCategoryColor={getCategoryColor}
+              />
             );
           })}
         </div>
 
         {/* Postpone Drop Zone */}
-        <Card 
-          id="postpone"
-          className="border-2 border-dashed border-orange-300 bg-orange-50 dark:bg-orange-950/20"
-        >
-          <CardContent className="p-6 text-center">
-            <div className="text-orange-600 dark:text-orange-400 font-medium">
-              🗓️ به تعویق انداختن تا فردا
-            </div>
-            <div className="text-sm text-muted-foreground mt-1">
-              وظیفه را اینجا بکشید تا به فردا منتقل شود
-            </div>
-          </CardContent>
-        </Card>
+        <PostponeDropZone />
       </div>
 
       <DragOverlay>
@@ -200,5 +164,85 @@ export function TimeBlockSchedule({ tasks, currentDate, onRefetch }: TimeBlockSc
         )}
       </DragOverlay>
     </DndContext>
+  );
+}
+
+// TimeSlot Drop Zone Component
+function TimeSlotDropZone({ timeSlot, slotTasks, onRefetch, getCategoryColor }: {
+  timeSlot: string;
+  slotTasks: any[];
+  onRefetch: () => void;
+  getCategoryColor: (category: string) => string;
+}) {
+  const { isOver, setNodeRef } = useDroppable({
+    id: `time-${timeSlot}`
+  });
+
+  return (
+    <Card 
+      ref={setNodeRef}
+      className={`min-h-[80px] transition-colors ${
+        isOver ? 'bg-primary/10 border-primary' : 'hover:bg-muted/50'
+      }`}
+    >
+      <CardContent className="p-4">
+        <div className="flex items-start gap-4">
+          <div className="w-16 text-sm font-medium text-muted-foreground">
+            {JalaliCalendar.toPersianDigits(timeSlot)}
+          </div>
+          
+          <div className="flex-1 space-y-2">
+            {slotTasks.map(task => (
+              <DraggableTaskCard
+                key={task.id}
+                task={task}
+                categoryColor={getCategoryColor(task.category)}
+                onRefetch={onRefetch}
+                timeSlot={timeSlot}
+              />
+            ))}
+            
+            {slotTasks.length === 0 && (
+              <div className={`border-2 border-dashed rounded-lg p-4 text-center transition-colors ${
+                isOver 
+                  ? 'border-primary bg-primary/5 text-primary' 
+                  : 'border-muted text-muted-foreground'
+              }`}>
+                {isOver ? 'رها کنید تا زمان‌بندی شود' : 'وظیفه‌ای برای این ساعت تعریف نشده'}
+              </div>
+            )}
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+// Postpone Drop Zone Component  
+function PostponeDropZone() {
+  const { isOver, setNodeRef } = useDroppable({
+    id: 'postpone'
+  });
+
+  return (
+    <Card 
+      ref={setNodeRef}
+      className={`border-2 border-dashed transition-colors ${
+        isOver 
+          ? 'border-orange-500 bg-orange-50 dark:bg-orange-950/30' 
+          : 'border-orange-300 bg-orange-50 dark:bg-orange-950/20'
+      }`}
+    >
+      <CardContent className="p-6 text-center">
+        <div className={`font-medium transition-colors ${
+          isOver ? 'text-orange-700 dark:text-orange-300' : 'text-orange-600 dark:text-orange-400'
+        }`}>
+          🗓️ به تعویق انداختن تا فردا
+        </div>
+        <div className="text-sm text-muted-foreground mt-1">
+          {isOver ? 'رها کنید تا به فردا منتقل شود' : 'وظیفه را اینجا بکشید تا به فردا منتقل شود'}
+        </div>
+      </CardContent>
+    </Card>
   );
 }
