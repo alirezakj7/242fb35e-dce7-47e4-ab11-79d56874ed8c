@@ -75,7 +75,7 @@ export function TimeBlockSchedule({ tasks, currentDate, onRefetch }: TimeBlockSc
         
         await updateTask(task.id, {
           scheduled_date: nextDayStr,
-          status: 'pending'
+          status: 'postponed'
         });
 
         toast({

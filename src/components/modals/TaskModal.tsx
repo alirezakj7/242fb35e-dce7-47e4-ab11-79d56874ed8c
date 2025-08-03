@@ -5,9 +5,10 @@ interface TaskModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   defaultDate?: Date;
+  task?: any; // For editing existing tasks
 }
 
-export function TaskModal({ open, onOpenChange, defaultDate }: TaskModalProps) {
+export function TaskModal({ open, onOpenChange, defaultDate, task }: TaskModalProps) {
   const handleSuccess = () => {
     onOpenChange(false);
   };
@@ -21,7 +22,7 @@ export function TaskModal({ open, onOpenChange, defaultDate }: TaskModalProps) {
             وظیفه جدیدی را به برنامه خود اضافه کنید
           </DialogDescription>
         </DialogHeader>
-        <TaskForm onSuccess={handleSuccess} defaultDate={defaultDate} />
+        <TaskForm onSuccess={handleSuccess} defaultDate={defaultDate} task={task} />
       </DialogContent>
     </Dialog>
   );

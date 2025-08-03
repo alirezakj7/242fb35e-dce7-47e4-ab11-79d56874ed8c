@@ -31,9 +31,10 @@ type TaskFormData = z.infer<typeof taskSchema>;
 interface TaskFormProps {
   onSuccess?: () => void;
   defaultDate?: Date;
+  task?: any; // For editing existing tasks
 }
 
-export function TaskForm({ onSuccess, defaultDate }: TaskFormProps) {
+export function TaskForm({ onSuccess, defaultDate, task }: TaskFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { addTask } = useTasks();
   const { toast } = useToast();

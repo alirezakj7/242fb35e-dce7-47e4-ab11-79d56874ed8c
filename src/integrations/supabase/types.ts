@@ -233,6 +233,7 @@ export type Database = {
           id: string
           routine_job_id: string | null
           scheduled_date: string | null
+          scheduled_time: string | null
           status: Database["public"]["Enums"]["task_status"]
           tags: string[] | null
           time_spent: number | null
@@ -251,6 +252,7 @@ export type Database = {
           id?: string
           routine_job_id?: string | null
           scheduled_date?: string | null
+          scheduled_time?: string | null
           status?: Database["public"]["Enums"]["task_status"]
           tags?: string[] | null
           time_spent?: number | null
@@ -269,6 +271,7 @@ export type Database = {
           id?: string
           routine_job_id?: string | null
           scheduled_date?: string | null
+          scheduled_time?: string | null
           status?: Database["public"]["Enums"]["task_status"]
           tags?: string[] | null
           time_spent?: number | null
