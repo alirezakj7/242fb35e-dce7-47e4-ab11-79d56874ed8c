@@ -85,9 +85,11 @@ export function TimeBlockSchedule({ tasks, currentDate, onRefetch }: TimeBlockSc
       } else if (typeof over.id === 'string' && over.id.startsWith('time-')) {
         // Move to specific time slot
         const timeSlot = over.id.replace('time-', '');
+        const currentDateStr = JalaliCalendar.format(currentDate, 'YYYY-MM-DD');
         
         await updateTask(task.id, {
-          scheduled_time: timeSlot
+          scheduled_time: timeSlot,
+          scheduled_date: currentDateStr
         });
 
         toast({
