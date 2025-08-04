@@ -75,7 +75,7 @@ export function TimeBlockSchedule({ tasks, currentDate, onRefetch }: TimeBlockSc
       if (over.id === 'postpone') {
         // Postpone to next day
         const nextDay = JalaliCalendar.addDays(currentDate, 1);
-        const nextDayStr = JalaliCalendar.format(nextDay, 'YYYY-MM-DD');
+        const nextDayStr = JalaliCalendar.toEnglishDigits(JalaliCalendar.format(nextDay, 'YYYY-MM-DD'));
         
         console.log('Postponing task:', task.id, 'to:', nextDayStr);
         
@@ -91,7 +91,7 @@ export function TimeBlockSchedule({ tasks, currentDate, onRefetch }: TimeBlockSc
       } else if (typeof over.id === 'string' && over.id.startsWith('time-')) {
         // Move to specific time slot
         const timeSlot = over.id.replace('time-', '');
-        const currentDateStr = JalaliCalendar.format(currentDate, 'YYYY-MM-DD');
+        const currentDateStr = JalaliCalendar.toEnglishDigits(JalaliCalendar.format(currentDate, 'YYYY-MM-DD'));
         console.log('Scheduling task:', task.id, 'to time slot:', timeSlot, 'on date:', currentDateStr);
         
         await updateTask(task.id, {
