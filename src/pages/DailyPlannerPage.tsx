@@ -42,7 +42,7 @@ export default function DailyPlannerPage() {
 
   // Get tasks for the current day
   const getDayTasks = () => {
-    const dateStr = JalaliCalendar.format(currentDate, 'YYYY-MM-DD');
+    const dateStr = JalaliCalendar.toEnglishDigits(JalaliCalendar.format(currentDate, 'YYYY-MM-DD'));
     return tasks.filter(task => 
       task.scheduled_date === dateStr || 
       (!task.scheduled_date && !task.scheduled_time) // Include unscheduled tasks
