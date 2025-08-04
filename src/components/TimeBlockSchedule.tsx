@@ -77,6 +77,8 @@ export function TimeBlockSchedule({ tasks, currentDate, onRefetch }: TimeBlockSc
         const nextDay = JalaliCalendar.addDays(currentDate, 1);
         const nextDayStr = JalaliCalendar.format(nextDay, 'YYYY-MM-DD');
         
+        console.log('Postponing task:', task.id, 'to:', nextDayStr);
+        
         await updateTask(task.id, {
           scheduled_date: nextDayStr,
           status: 'postponed'
@@ -90,7 +92,7 @@ export function TimeBlockSchedule({ tasks, currentDate, onRefetch }: TimeBlockSc
         // Move to specific time slot
         const timeSlot = over.id.replace('time-', '');
         const currentDateStr = JalaliCalendar.format(currentDate, 'YYYY-MM-DD');
-        console.log('Updating task with:', { scheduled_time: timeSlot, scheduled_date: currentDateStr });
+        console.log('Scheduling task:', task.id, 'to time slot:', timeSlot, 'on date:', currentDateStr);
         
         await updateTask(task.id, {
           scheduled_time: timeSlot,
@@ -105,9 +107,10 @@ export function TimeBlockSchedule({ tasks, currentDate, onRefetch }: TimeBlockSc
 
       onRefetch();
     } catch (error) {
+      console.error('Error in handleDragEnd:', error);
       toast({
         title: 'خطا',
-        description: 'خطا در تغییر وظیفه',
+        description: `خطا در تغییر وظیفه: ${error.message || 'خطای نامشخص'}`,
         variant: 'destructive',
       });
     }
