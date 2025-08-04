@@ -59,7 +59,7 @@ export function TaskForm({ onSuccess, defaultDate, task }: TaskFormProps) {
         title: data.title,
         description: data.description || null,
         category: data.category as any,
-        scheduled_date: data.scheduled_date ? data.scheduled_date.toISOString().split('T')[0] : null,
+        scheduled_date: null, // Don't set scheduled_date by default - let user drag to schedule
         tags: data.tags ? data.tags.split('،').map(tag => tag.trim()).filter(Boolean) : [],
         status: 'not_started' as const,
         financial_type: data.financial_type || null,
