@@ -8,6 +8,7 @@ import { TaskModal } from '@/components/modals/TaskModal';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent } from '@/components/ui/card';
 import { TaskProgress } from '@/components/TaskProgress';
+import { TaskTimer } from '@/components/TaskTimer';
 import { TimeBlockSchedule } from '@/components/TimeBlockSchedule';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
@@ -232,6 +233,14 @@ export default function DailyPlannerPage() {
                               ))}
                             </div>
                           </div>
+                          
+                          {/* Timer Controls */}
+                          <TaskTimer
+                            taskId={task.id}
+                            currentStatus={task.status as any}
+                            timeSpent={task.time_spent || 0}
+                            onStatusChange={refetch}
+                          />
                         </div>
                       </CardContent>
                     </Card>

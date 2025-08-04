@@ -16,6 +16,8 @@ interface DraggableTaskCardProps {
 }
 
 export function DraggableTaskCard({ task, categoryColor, onRefetch, timeSlot }: DraggableTaskCardProps) {
+  const [showTimer, setShowTimer] = useState(false);
+  const [currentStatus, setCurrentStatus] = useState(task.status);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
