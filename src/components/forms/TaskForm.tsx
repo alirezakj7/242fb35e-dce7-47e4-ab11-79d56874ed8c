@@ -78,7 +78,14 @@ export function TaskForm({ onSuccess, defaultDate, task }: TaskFormProps) {
     }
   };
 
-  const onSubmit = async (data: TaskFormData) => {
+  const handleSubmit = async () => {
+    if (currentStep !== 3) return;
+    
+    const isValid = await form.trigger();
+    if (!isValid) return;
+
+    const data = form.getValues();
+    
     setIsSubmitting(true);
     try {
       const taskData = {
@@ -99,6 +106,7 @@ export function TaskForm({ onSuccess, defaultDate, task }: TaskFormProps) {
       });
 
       form.reset();
+      setCurrentStep(1);
       onSuccess?.();
     } catch (error) {
       toast({
@@ -137,7 +145,7 @@ export function TaskForm({ onSuccess, defaultDate, task }: TaskFormProps) {
         <h3 className="text-lg font-medium">{stepTitles[currentStep - 1]}</h3>
       </div>
 
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+      <div className="space-y-4">
         {/* Step content */}
         <div className="min-h-[200px]">
           {currentStep === 1 && <TaskFormStep1 form={form} />}
@@ -165,7 +173,7 @@ export function TaskForm({ onSuccess, defaultDate, task }: TaskFormProps) {
               <ChevronLeft size={16} className="mr-1" />
             </Button>
           ) : (
-            <Button type="submit" disabled={isSubmitting} className="flex-1">
+            <Button type="button" onClick={handleSubmit} disabled={isSubmitting} className="flex-1">
               {isSubmitting ? (
                 'در حال افزودن...'
               ) : (
@@ -177,7 +185,7 @@ export function TaskForm({ onSuccess, defaultDate, task }: TaskFormProps) {
             </Button>
           )}
         </div>
-      </form>
+      </div>
     </div>
   );
 }
