@@ -3,18 +3,12 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { CalendarIcon, Plus } from 'lucide-react';
-import { format } from 'date-fns';
-import { cn } from '@/lib/utils';
-import { wheelOfLifeCategories } from '@/constants/categories';
+import { ChevronLeft, ChevronRight, Plus } from 'lucide-react';
 import { useTasks } from '@/hooks/useTasks';
 import { useToast } from '@/hooks/use-toast';
+import { TaskFormStep1 } from './TaskFormStep1';
+import { TaskFormStep2 } from './TaskFormStep2';
+import { TaskFormStep3 } from './TaskFormStep3';
 
 const taskSchema = z.object({
   title: z.string().min(1, 'عنوان وظیفه الزامی است'),
@@ -22,7 +16,7 @@ const taskSchema = z.object({
   category: z.string().min(1, 'انتخاب دسته‌بندی الزامی است'),
   scheduled_date: z.date().optional(),
   tags: z.string().optional(),
-  financial_type: z.enum(['spend', 'earn_once', 'earn_routine']).optional(),
+  financial_type: z.enum(['spend', 'earn_once']).optional(),
   earnings: z.string().optional(),
 });
 
@@ -35,6 +29,7 @@ interface TaskFormProps {
 }
 
 export function TaskForm({ onSuccess, defaultDate, task }: TaskFormProps) {
+  const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { addTask } = useTasks();
   const { toast } = useToast();
@@ -51,6 +46,37 @@ export function TaskForm({ onSuccess, defaultDate, task }: TaskFormProps) {
       earnings: '',
     },
   });
+
+  const stepTitles = [
+    'نام و اطلاعات',
+    'دسته‌بندی و تاریخ', 
+    'برچسب و مالی'
+  ];
+
+  const isStepValid = (step: number) => {
+    switch (step) {
+      case 1:
+        return !!form.watch('title')?.trim();
+      case 2:
+        return !!form.watch('category');
+      case 3:
+        return true; // Step 3 is always valid as all fields are optional
+      default:
+        return false;
+    }
+  };
+
+  const handleNext = () => {
+    if (isStepValid(currentStep) && currentStep < 3) {
+      setCurrentStep(currentStep + 1);
+    }
+  };
+
+  const handlePrevious = () => {
+    if (currentStep > 1) {
+      setCurrentStep(currentStep - 1);
+    }
+  };
 
   const onSubmit = async (data: TaskFormData) => {
     setIsSubmitting(true);
@@ -86,139 +112,72 @@ export function TaskForm({ onSuccess, defaultDate, task }: TaskFormProps) {
   };
 
   return (
-    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-      <div className="space-y-2">
-        <Label htmlFor="title">عنوان وظیفه *</Label>
-        <Input
-          id="title"
-          placeholder="مثال: مطالعه کتاب جدید"
-          {...form.register('title')}
-          className="text-right"
-        />
-        {form.formState.errors.title && (
-          <p className="text-sm text-destructive">{form.formState.errors.title.message}</p>
-        )}
+    <div className="space-y-4">
+      {/* Step indicator */}
+      <div className="flex items-center justify-center mb-6">
+        {[1, 2, 3].map((step) => (
+          <div key={step} className="flex items-center">
+            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
+              step === currentStep ? 'bg-primary text-primary-foreground' :
+              step < currentStep ? 'bg-primary/20 text-primary' : 'bg-muted text-muted-foreground'
+            }`}>
+              {step}
+            </div>
+            {step < 3 && (
+              <div className={`w-12 h-0.5 mx-2 ${
+                step < currentStep ? 'bg-primary' : 'bg-muted'
+              }`} />
+            )}
+          </div>
+        ))}
       </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="description">توضیحات</Label>
-        <Textarea
-          id="description"
-          placeholder="جزئیات بیشتر در مورد وظیفه..."
-          {...form.register('description')}
-          className="text-right resize-none"
-          rows={3}
-        />
+      {/* Step title */}
+      <div className="text-center mb-4">
+        <h3 className="text-lg font-medium">{stepTitles[currentStep - 1]}</h3>
       </div>
 
-      <div className="space-y-2">
-        <Label>دسته‌بندی *</Label>
-        <Select value={form.watch('category')} onValueChange={(value) => form.setValue('category', value)}>
-          <SelectTrigger className="text-right">
-            <SelectValue placeholder="انتخاب دسته‌بندی" />
-          </SelectTrigger>
-          <SelectContent>
-            {wheelOfLifeCategories.map((category) => (
-              <SelectItem key={category.key} value={category.key}>
-                <div className="flex items-center gap-2">
-                  <span>{category.icon}</span>
-                  <span>{category.label}</span>
-                </div>
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        {form.formState.errors.category && (
-          <p className="text-sm text-destructive">{form.formState.errors.category.message}</p>
-        )}
-      </div>
-
-      <div className="space-y-2">
-        <Label>تاریخ انجام</Label>
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              className={cn(
-                "w-full justify-start text-right font-normal",
-                !form.watch('scheduled_date') && "text-muted-foreground"
-              )}
-            >
-              <CalendarIcon className="ml-2 h-4 w-4" />
-              {form.watch('scheduled_date') ? (
-                (() => {
-                  const date = form.watch('scheduled_date');
-                  return date && !isNaN(date.getTime()) ? format(date, "PPP") : 'تاریخ نامعتبر';
-                })()
-              ) : (
-                <span>انتخاب تاریخ</span>
-              )}
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-auto p-0" align="start">
-            <Calendar
-              mode="single"
-              selected={form.watch('scheduled_date')}
-              onSelect={(date) => form.setValue('scheduled_date', date)}
-              initialFocus
-              className={cn("p-3 pointer-events-auto")}
-            />
-          </PopoverContent>
-        </Popover>
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="tags">برچسب‌ها</Label>
-        <Input
-          id="tags"
-          placeholder="مثال: مهم، فوری، کار (با کاما جدا کنید)"
-          {...form.register('tags')}
-          className="text-right"
-        />
-        <p className="text-xs text-muted-foreground">برچسب‌ها را با کاما (،) جدا کنید</p>
-      </div>
-
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label>نوع مالی</Label>
-          <Select value={form.watch('financial_type') || ''} onValueChange={(value) => form.setValue('financial_type', value as any)}>
-            <SelectTrigger className="text-right">
-              <SelectValue placeholder="بدون پاداش مالی" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="earn_once">درآمد یکباره</SelectItem>
-              <SelectItem value="earn_routine">درآمد روتین</SelectItem>
-              <SelectItem value="spend">هزینه</SelectItem>
-            </SelectContent>
-          </Select>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        {/* Step content */}
+        <div className="min-h-[200px]">
+          {currentStep === 1 && <TaskFormStep1 form={form} />}
+          {currentStep === 2 && <TaskFormStep2 form={form} />}
+          {currentStep === 3 && <TaskFormStep3 form={form} />}
         </div>
 
-        {form.watch('financial_type') && (
-          <div className="space-y-2">
-            <Label htmlFor="earnings">مبلغ (تومان)</Label>
-            <Input
-              id="earnings"
-              type="number"
-              placeholder="۱۰۰۰۰"
-              {...form.register('earnings')}
-              className="text-right"
-            />
-          </div>
-        )}
-      </div>
-
-      <div className="flex gap-2 pt-4">
-        <Button type="submit" disabled={isSubmitting} className="flex-1">
-          {isSubmitting ? (
-            'در حال افزودن...'
-          ) : (
-            <>
-              <Plus size={16} className="ml-1" />
-              افزودن وظیفه
-            </>
+        {/* Navigation buttons */}
+        <div className="flex gap-2 pt-4">
+          {currentStep > 1 && (
+            <Button type="button" variant="outline" onClick={handlePrevious}>
+              <ChevronRight size={16} className="ml-1" />
+              قبلی
+            </Button>
           )}
-        </Button>
-      </div>
-    </form>
+          
+          {currentStep < 3 ? (
+            <Button 
+              type="button" 
+              onClick={handleNext} 
+              disabled={!isStepValid(currentStep)}
+              className="flex-1"
+            >
+              بعدی
+              <ChevronLeft size={16} className="mr-1" />
+            </Button>
+          ) : (
+            <Button type="submit" disabled={isSubmitting} className="flex-1">
+              {isSubmitting ? (
+                'در حال افزودن...'
+              ) : (
+                <>
+                  <Plus size={16} className="ml-1" />
+                  افزودن وظیفه
+                </>
+              )}
+            </Button>
+          )}
+        </div>
+      </form>
+    </div>
   );
 }
