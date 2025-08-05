@@ -197,9 +197,11 @@ function TimeSlotDropZone({ timeSlot, slotTasks, onRefetch, getCategoryColor }: 
     >
       <CardContent className="p-4">
         <div className="flex items-start gap-4">
-          <div className="w-16 text-sm font-medium text-muted-foreground">
-            {JalaliCalendar.toPersianDigits(timeSlot)}
-          </div>
+          {slotTasks.length === 0 && (
+            <div className="w-16 text-sm font-medium text-muted-foreground">
+              {JalaliCalendar.toPersianDigits(timeSlot)}
+            </div>
+          )}
           
           <div className="flex-1 space-y-2">
             {slotTasks.map(task => (
