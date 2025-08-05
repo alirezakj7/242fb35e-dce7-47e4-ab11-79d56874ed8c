@@ -273,7 +273,7 @@ export default function PlannerPage() {
       </div>
 
       {/* Floating Action Button (FAB) */}
-      <div className="fixed bottom-6 right-6 z-20">
+      <div className="fixed bottom-20 right-6 z-[60] md:bottom-6">
         <Button
           size="lg"
           className="w-14 h-14 rounded-full shadow-lg hover:shadow-xl transition-shadow"
