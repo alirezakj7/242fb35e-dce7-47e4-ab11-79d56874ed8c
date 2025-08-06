@@ -4,14 +4,19 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle2, Circle, Plus, Flame, Target } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { CheckCircle2, Circle, Plus, Flame, Target, Calendar, BarChart3 } from 'lucide-react';
 import { JalaliCalendar } from '@/utils/jalali';
 import { wheelOfLifeCategories } from '@/constants/categories';
 import { HabitModal } from '@/components/modals/HabitModal';
+import { HabitCalendar } from '@/components/habits/HabitCalendar';
+import { HabitProgressCard } from '@/components/habits/HabitProgressCard';
 
 export default function HabitsPage() {
   const { habits, loading, toggleHabitCompletion } = useHabits();
   const [habitModalOpen, setHabitModalOpen] = useState(false);
+  const [selectedHabitId, setSelectedHabitId] = useState<string>('');
 
   const getCategoryInfo = (categoryKey: string) => {
     return wheelOfLifeCategories.find(cat => cat.key === categoryKey);
@@ -63,12 +68,10 @@ export default function HabitsPage() {
                   {JalaliCalendar.toPersianDigits(habit.streak)}
                 </Badge>
               )}
-              <Button
+        <Button
                 size="sm"
                 variant={isCompletedToday ? "default" : "outline"}
-                onClick={() => {
-                  // Handle habit completion toggle
-                }}
+                onClick={() => toggleHabitCompletion(habit.id, today)}
               >
                 {isCompletedToday ? (
                   <CheckCircle2 size={16} />
@@ -199,110 +202,155 @@ export default function HabitsPage() {
         </Card>
       </div>
 
-      {/* Today's Habits Quick View */}
-      <Card className="mb-6 shadow-card">
-        <CardHeader>
-          <CardTitle className="text-lg flex items-center gap-2">
-            🎯 عادت‌های امروز
-          </CardTitle>
-          <CardDescription>
-            عادت‌هایی که برای امروز برنامه‌ریزی شده‌اند
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {habits.length === 0 ? (
-            <div className="text-center py-6">
-              <p className="text-muted-foreground mb-4">هنوز عادتی تعریف نکرده‌اید</p>
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={() => setHabitModalOpen(true)}
-              >
-                <Plus size={14} className="ml-1" />
-                شروع با عادت اول
-              </Button>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {habits.filter(habit => {
-                const today = new Date().getDay();
-                return habit.days_of_week.includes(today);
-              }).map(habit => {
-                const categoryInfo = getCategoryInfo(habit.category);
-                const today = new Date().toISOString().split('T')[0];
-                const todayCompletion = (habit.completions as any[] || []).find((c: any) => c.date === today);
-                const isCompletedToday = todayCompletion?.completed || false;
+      {/* Main Content */}
+      {habits.length === 0 ? (
+        <Card className="shadow-card">
+          <CardContent className="text-center py-12">
+            <Target size={64} className="mx-auto mb-6 opacity-50 text-muted-foreground" />
+            <h3 className="text-xl font-semibold mb-2">شروع سفر تغییر</h3>
+            <p className="text-muted-foreground mb-6">با ایجاد اولین عادت مثبت، گام اول را به سوی زندگی بهتر بردارید</p>
+            <Button 
+              size="lg"
+              onClick={() => setHabitModalOpen(true)}
+              className="shadow-elegant"
+            >
+              <Plus size={16} className="ml-2" />
+              ایجاد اولین عادت
+            </Button>
+          </CardContent>
+        </Card>
+      ) : (
+        <Tabs defaultValue="today" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="today" className="flex items-center gap-2">
+              <CheckCircle2 size={16} />
+              امروز
+            </TabsTrigger>
+            <TabsTrigger value="calendar" className="flex items-center gap-2">
+              <Calendar size={16} />
+              نقشه عادت
+            </TabsTrigger>
+            <TabsTrigger value="progress" className="flex items-center gap-2">
+              <BarChart3 size={16} />
+              پیشرفت
+            </TabsTrigger>
+          </TabsList>
 
-                return (
-                  <div
-                    key={habit.id}
-                    className="flex items-center gap-3 p-3 rounded-lg border bg-muted/20 hover:bg-muted/40 transition-smooth"
-                  >
-                    <Button
-                      size="sm"
-                      variant={isCompletedToday ? "default" : "outline"}
-                      className="shrink-0"
-                    >
-                      {isCompletedToday ? (
-                        <CheckCircle2 size={16} />
-                      ) : (
-                        <Circle size={16} />
-                      )}
-                    </Button>
-                    
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <span className="text-lg">{categoryInfo?.icon}</span>
-                        <h4 className="font-medium">{habit.name}</h4>
-                        {habit.streak > 0 && (
-                          <Badge variant="secondary" className="flex items-center gap-1 text-xs">
-                            <Flame size={10} className="text-orange-500" />
-                            {JalaliCalendar.toPersianDigits(habit.streak)}
-                          </Badge>
-                        )}
+          {/* Today's Habits */}
+          <TabsContent value="today" className="space-y-6">
+            <Card className="shadow-card">
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  🎯 عادت‌های امروز
+                </CardTitle>
+                <CardDescription>
+                  عادت‌هایی که برای امروز برنامه‌ریزی شده‌اند
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {habits.filter(habit => {
+                    const today = new Date().getDay();
+                    return habit.days_of_week.includes(today);
+                  }).map(habit => {
+                    const categoryInfo = getCategoryInfo(habit.category);
+                    const today = new Date().toISOString().split('T')[0];
+                    const todayCompletion = (habit.completions as any[] || []).find((c: any) => c.date === today);
+                    const isCompletedToday = todayCompletion?.completed || false;
+
+                    return (
+                      <div
+                        key={habit.id}
+                        className="flex items-center gap-3 p-4 rounded-lg border bg-muted/20 hover:bg-muted/40 transition-smooth"
+                      >
+                        <Button
+                          size="sm"
+                          variant={isCompletedToday ? "default" : "outline"}
+                          className="shrink-0"
+                          onClick={() => toggleHabitCompletion(habit.id, today)}
+                        >
+                          {isCompletedToday ? (
+                            <CheckCircle2 size={16} />
+                          ) : (
+                            <Circle size={16} />
+                          )}
+                        </Button>
+                        
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2">
+                            <span className="text-lg">{categoryInfo?.icon}</span>
+                            <h4 className="font-medium">{habit.name}</h4>
+                            {habit.streak > 0 && (
+                              <Badge variant="secondary" className="flex items-center gap-1 text-xs">
+                                <Flame size={10} className="text-orange-500" />
+                                {JalaliCalendar.toPersianDigits(habit.streak)}
+                              </Badge>
+                            )}
+                          </div>
+                          {habit.reminder_time && (
+                            <p className="text-sm text-muted-foreground">
+                              یادآوری: {JalaliCalendar.toPersianDigits(habit.reminder_time)}
+                            </p>
+                          )}
+                        </div>
                       </div>
-                      {habit.reminder_time && (
-                        <p className="text-sm text-muted-foreground">
-                          یادآوری: {JalaliCalendar.toPersianDigits(habit.reminder_time)}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+                    );
+                  })}
+                </div>
+              </CardContent>
+            </Card>
 
-      {/* All Habits */}
-      <div className="space-y-4">
-        <div className="flex items-center gap-2">
-          <Target className="text-primary" size={20} />
-          <h2 className="font-semibold">همه عادت‌ها</h2>
-        </div>
-        
-        {habits.length === 0 ? (
-          <Card className="shadow-card">
-            <CardContent className="text-center py-8">
-              <Target size={48} className="mx-auto mb-4 opacity-50 text-muted-foreground" />
-              <p className="text-muted-foreground mb-4">شروع سفر تغییر با اولین عادت مثبت</p>
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={() => setHabitModalOpen(true)}
-              >
-                <Plus size={14} className="ml-1" />
-                ایجاد عادت جدید
-              </Button>
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="grid gap-4">
-            {habits.map(renderHabitCard)}
-          </div>
-        )}
-      </div>
+            {/* All Habits List */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Target className="text-primary" size={20} />
+                  <h2 className="font-semibold">همه عادت‌ها</h2>
+                </div>
+              </div>
+              
+              <div className="grid gap-4">
+                {habits.map(renderHabitCard)}
+              </div>
+            </div>
+          </TabsContent>
+
+          {/* Habit Calendar */}
+          <TabsContent value="calendar" className="space-y-6">
+            <div className="flex items-center gap-4">
+              <Select value={selectedHabitId} onValueChange={setSelectedHabitId}>
+                <SelectTrigger className="w-[300px] text-right">
+                  <SelectValue placeholder="انتخاب عادت برای مشاهده نقشه" />
+                </SelectTrigger>
+                <SelectContent>
+                  {habits.map((habit) => {
+                    const categoryInfo = getCategoryInfo(habit.category);
+                    return (
+                      <SelectItem key={habit.id} value={habit.id}>
+                        <div className="flex items-center gap-2">
+                          <span>{categoryInfo?.icon}</span>
+                          <span>{habit.name}</span>
+                        </div>
+                      </SelectItem>
+                    );
+                  })}
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <HabitCalendar selectedHabitId={selectedHabitId || habits[0]?.id} />
+          </TabsContent>
+
+          {/* Progress Overview */}
+          <TabsContent value="progress" className="space-y-6">
+            <div className="grid gap-6">
+              {habits.map((habit) => (
+                <HabitProgressCard key={habit.id} habit={habit} />
+              ))}
+            </div>
+          </TabsContent>
+        </Tabs>
+      )}
       
       <HabitModal 
         open={habitModalOpen} 

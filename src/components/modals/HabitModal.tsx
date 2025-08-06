@@ -1,5 +1,5 @@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { HabitForm } from '@/components/forms/HabitForm';
+import { HabitWizard } from '@/components/forms/HabitWizard';
 
 interface HabitModalProps {
   open: boolean;
@@ -20,7 +20,7 @@ export function HabitModal({ open, onOpenChange }: HabitModalProps) {
             عادت جدیدی را به برنامه خود اضافه کنید
           </DialogDescription>
         </DialogHeader>
-        <HabitForm onSuccess={handleSuccess} />
+        <HabitWizard onSuccess={handleSuccess} />
       </DialogContent>
     </Dialog>
   );
