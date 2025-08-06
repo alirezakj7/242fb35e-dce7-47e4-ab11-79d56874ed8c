@@ -25,7 +25,7 @@ import { TaskModal } from '@/components/modals/TaskModal';
 const Index = () => {
   const { tasks, loading: tasksLoading } = useTasks();
   const { goals, loading: goalsLoading } = useGoals();
-  const { habits, loading: habitsLoading } = useHabits();
+  const { habits, loading: habitsLoading, toggleHabitCompletion } = useHabits();
   const [taskModalOpen, setTaskModalOpen] = useState(false);
 
   const getTodayTasks = () => {
@@ -245,6 +245,7 @@ const Index = () => {
                       size="sm"
                       variant={isCompletedToday ? "default" : "outline"}
                       className="shrink-0 w-8 h-8"
+                      onClick={() => toggleHabitCompletion(habit.id, today)}
                     >
                       {isCompletedToday ? (
                         <CheckCircle2 size={14} />
