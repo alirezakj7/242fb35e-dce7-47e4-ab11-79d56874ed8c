@@ -7,6 +7,24 @@ type Habit = Database['public']['Tables']['habits']['Row'];
 type HabitInsert = Database['public']['Tables']['habits']['Insert'];
 type HabitUpdate = Database['public']['Tables']['habits']['Update'];
 
+const normalizeCompletions = (val: any): any[] => {
+  if (Array.isArray(val)) return val;
+  if (typeof val === 'string') {
+    try {
+      const parsed = JSON.parse(val);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  }
+  return [];
+};
+
+const normalizeHabit = (h: any) => ({
+  ...h,
+  completions: normalizeCompletions((h as any).completions),
+});
+
 export function useHabits() {
   const [habits, setHabits] = useState<Habit[]>([]);
   const [loading, setLoading] = useState(true);
@@ -23,7 +41,7 @@ export function useHabits() {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setHabits(data || []);
+      setHabits((data || []).map((h: any) => normalizeHabit(h)));
     } catch (error) {
       console.error('Error fetching habits:', error);
     } finally {
@@ -42,7 +60,7 @@ export function useHabits() {
         .single();
 
       if (error) throw error;
-      setHabits(prev => [data, ...prev]);
+      setHabits(prev => [normalizeHabit(data as any), ...prev]);
       return data;
     } catch (error) {
       console.error('Error adding habit:', error);
@@ -60,7 +78,7 @@ export function useHabits() {
         .single();
 
       if (error) throw error;
-      setHabits(prev => prev.map(habit => habit.id === id ? data : habit));
+      setHabits(prev => prev.map(habit => habit.id === id ? normalizeHabit(data as any) : habit));
       return data;
     } catch (error) {
       console.error('Error updating habit:', error);
@@ -87,7 +105,7 @@ export function useHabits() {
     const habit = habits.find(h => h.id === habitId);
     if (!habit) return;
 
-    const completions = habit.completions as any[] || [];
+    const completions = normalizeCompletions((habit as any).completions);
     const existingCompletion = completions.find((c: any) => c.date === date);
     
     let newCompletions;

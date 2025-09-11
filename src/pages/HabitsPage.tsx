@@ -29,8 +29,8 @@ export default function HabitsPage() {
 
   const getMonthlyConsistency = (habit: any) => {
     const currentMonth = JalaliCalendar.format(new Date(), 'jYYYY/jMM');
-    const monthCompletions = habit.completions.filter((completion: any) => 
-      completion.date.startsWith(currentMonth)
+    const monthCompletions = (Array.isArray(habit.completions) ? habit.completions : []).filter((completion: any) => 
+      completion.date?.startsWith(currentMonth)
     );
     
     const completedDays = monthCompletions.filter((c: any) => c.completed).length;
@@ -43,8 +43,8 @@ export default function HabitsPage() {
     const categoryInfo = getCategoryInfo(habit.category);
     const consistency = getMonthlyConsistency(habit);
     const today = JalaliCalendar.format(new Date(), 'jYYYY/jMM/jDD');
-    const todayCompletion = habit.completions.find((c: any) => c.date === today);
-    const isCompletedToday = todayCompletion?.completed || false;
+    const todayCompletion = (Array.isArray(habit.completions) ? habit.completions : []).find((c: any) => c.date === today);
+    const isCompletedToday = (todayCompletion as any)?.completed || false;
 
     return (
       <Card key={habit.id} className="shadow-card hover:shadow-elegant transition-smooth">
@@ -165,8 +165,8 @@ export default function HabitsPage() {
               {JalaliCalendar.toPersianDigits(
                 habits.filter(h => {
                   const today = new Date().toISOString().split('T')[0];
-                  const todayCompletion = (h.completions as any[] || []).find((c: any) => c.date === today);
-                  return todayCompletion?.completed;
+                  const todayCompletion = (Array.isArray(h.completions) ? h.completions : []).find((c: any) => c.date === today);
+                  return (todayCompletion as any)?.completed;
                 }).length
               )}
             </div>
@@ -255,8 +255,8 @@ export default function HabitsPage() {
                   }).map(habit => {
                     const categoryInfo = getCategoryInfo(habit.category);
                     const today = new Date().toISOString().split('T')[0];
-                    const todayCompletion = (habit.completions as any[] || []).find((c: any) => c.date === today);
-                    const isCompletedToday = todayCompletion?.completed || false;
+                    const todayCompletion = (Array.isArray(habit.completions) ? habit.completions : []).find((c: any) => c.date === today);
+                    const isCompletedToday = (todayCompletion as any)?.completed || false;
 
                     return (
                       <div
