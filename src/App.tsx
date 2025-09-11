@@ -17,6 +17,7 @@ import HabitsPage from "./pages/HabitsPage";
 import FinancePage from "./pages/FinancePage";
 import AnalyticsPage from "./pages/AnalyticsPage";
 import AchievementsPage from "./pages/AchievementsPage";
+import RoutineJobsPage from "./pages/RoutineJobsPage";
 import AuthPage from "./pages/AuthPage";
 import NotFound from "./pages/NotFound";
 
@@ -44,6 +45,7 @@ const App = () => (
                     <Route path="/finance" element={<FinancePage />} />
                     <Route path="/analytics" element={<AnalyticsPage />} />
                     <Route path="/achievements" element={<AchievementsPage />} />
+                    <Route path="/routine-jobs" element={<RoutineJobsPage />} />
                     <Route path="*" element={<NotFound />} />
                   </Routes>
                 </AppLayout>

@@ -11,7 +11,8 @@ import {
   Menu,
   X,
   LogOut,
-  Trophy
+  Trophy,
+  Briefcase
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
@@ -67,6 +68,12 @@ const navItems: NavItem[] = [
     href: '/achievements',
     icon: Trophy,
     description: 'مدال‌ها و دستاوردهای شما'
+  },
+  {
+    name: 'کارهای روتین',
+    href: '/routine-jobs',
+    icon: Briefcase,
+    description: 'مدیریت کارهای تکراری'
   },
 ];
 
