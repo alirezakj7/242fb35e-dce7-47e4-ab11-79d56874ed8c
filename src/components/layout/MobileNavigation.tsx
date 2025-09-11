@@ -10,7 +10,8 @@ import {
   Home,
   Menu,
   X,
-  LogOut 
+  LogOut,
+  Trophy
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
@@ -60,6 +61,12 @@ const navItems: NavItem[] = [
     href: '/analytics',
     icon: BarChart3,
     description: 'گزارش‌ها و تحلیل‌ها'
+  },
+  {
+    name: 'دستاوردها',
+    href: '/achievements',
+    icon: Trophy,
+    description: 'مدال‌ها و دستاوردهای شما'
   },
 ];
 
