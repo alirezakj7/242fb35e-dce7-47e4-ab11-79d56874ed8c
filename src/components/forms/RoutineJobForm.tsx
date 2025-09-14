@@ -3,32 +3,12 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Plus, Minus } from 'lucide-react';
-import { wheelOfLifeCategories } from '@/constants/categories';
-import { JalaliCalendar } from '@/utils/jalali';
+import { ChevronLeft, ChevronRight, Plus } from 'lucide-react';
+import { Form } from '@/components/ui/form';
+import { RoutineJobFormStep1 } from './RoutineJobFormStep1';
+import { RoutineJobFormStep2 } from './RoutineJobFormStep2';
+import { RoutineJobFormStep3 } from './RoutineJobFormStep3';
 
-const daysOfWeek = [
-  { key: 'saturday', label: 'شنبه' },
-  { key: 'sunday', label: 'یکشنبه' },
-  { key: 'monday', label: 'دوشنبه' },
-  { key: 'tuesday', label: 'سه‌شنبه' },
-  { key: 'wednesday', label: 'چهارشنبه' },
-  { key: 'thursday', label: 'پنج‌شنبه' },
-  { key: 'friday', label: 'جمعه' }
-];
-
-const frequencies = [
-  { value: 'daily', label: 'روزانه' },
-  { value: 'weekly', label: 'هفتگی' },
-  { value: 'monthly', label: 'ماهانه' }
-];
 
 const routineJobSchema = z.object({
   name: z.string().min(1, 'نام کار ضروری است'),
@@ -51,6 +31,8 @@ interface RoutineJobFormProps {
 }
 
 export function RoutineJobForm({ initialData, onSubmit, onCancel }: RoutineJobFormProps) {
+  const [currentStep, setCurrentStep] = useState(1);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [timeSlots, setTimeSlots] = useState(initialData?.time_slots || [{ start_time: '', end_time: '' }]);
   const [selectedDays, setSelectedDays] = useState<string[]>(initialData?.days_of_week || []);
 
@@ -65,6 +47,39 @@ export function RoutineJobForm({ initialData, onSubmit, onCancel }: RoutineJobFo
       time_slots: initialData?.time_slots || []
     }
   });
+
+  const stepTitles = [
+    'اطلاعات کلی',
+    'زمان‌بندی و تکرار',
+    'ساعات کاری'
+  ];
+
+  const isStepValid = (step: number) => {
+    switch (step) {
+      case 1:
+        return !!form.watch('name')?.trim() && 
+               form.watch('earnings') > 0 && 
+               !!form.watch('category');
+      case 2:
+        return !!form.watch('frequency');
+      case 3:
+        return true; // Step 3 is optional
+      default:
+        return false;
+    }
+  };
+
+  const handleNext = () => {
+    if (isStepValid(currentStep) && currentStep < 3) {
+      setCurrentStep(currentStep + 1);
+    }
+  };
+
+  const handlePrevious = () => {
+    if (currentStep > 1) {
+      setCurrentStep(currentStep - 1);
+    }
+  };
 
   const addTimeSlot = () => {
     setTimeSlots([...timeSlots, { start_time: '', end_time: '' }]);
@@ -87,186 +102,120 @@ export function RoutineJobForm({ initialData, onSubmit, onCancel }: RoutineJobFo
     setSelectedDays(updated);
   };
 
-  const handleSubmit = async (data: RoutineJobFormData) => {
-    const formData = {
-      ...data,
-      days_of_week: selectedDays.length > 0 ? selectedDays : null,
-      time_slots: timeSlots.filter(slot => slot.start_time && slot.end_time).length > 0 ? timeSlots : null
-    };
+  const handleSubmit = async () => {
+    if (currentStep !== 3) return;
     
-    await onSubmit(formData);
+    const isValid = await form.trigger();
+    if (!isValid) return;
+
+    const data = form.getValues();
+    
+    setIsSubmitting(true);
+    try {
+      const formData = {
+        ...data,
+        days_of_week: selectedDays.length > 0 ? selectedDays : null,
+        time_slots: timeSlots.filter(slot => slot.start_time && slot.end_time).length > 0 ? timeSlots : null
+      };
+      
+      await onSubmit(formData);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>اطلاعات کلی</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <FormField
-              control={form.control}
-              name="name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>نام کار</FormLabel>
-                  <FormControl>
-                    <Input placeholder="مثال: تدریس آنلاین" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="earnings"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>درآمد (تومان)</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="number"
-                      placeholder="مبلغ درآمد"
-                      {...field}
-                      onChange={(e) => field.onChange(Number(e.target.value))}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="frequency"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>تکرار</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="انتخاب تکرار" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {frequencies.map((freq) => (
-                          <SelectItem key={freq.value} value={freq.value}>
-                            {freq.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="category"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>دسته‌بندی</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="انتخاب دسته‌بندی" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {wheelOfLifeCategories.map((category) => (
-                          <SelectItem key={category.key} value={category.key}>
-                            <span className="flex items-center gap-2">
-                              <span>{category.icon}</span>
-                              <span>{category.label}</span>
-                            </span>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>روزهای کاری</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 gap-2">
-              {daysOfWeek.map((day) => (
-                <Button
-                  key={day.key}
-                  type="button"
-                  variant={selectedDays.includes(day.key) ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => toggleDay(day.key)}
-                  className="justify-start"
-                >
-                  {day.label}
-                </Button>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center justify-between">
-              ساعات کاری
-              <Button type="button" variant="outline" size="sm" onClick={addTimeSlot}>
-                <Plus className="h-4 w-4 ml-1" />
-                افزودن
-              </Button>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {timeSlots.map((slot, index) => (
-              <div key={index} className="flex items-center gap-2">
-                <Input
-                  type="time"
-                  placeholder="شروع"
-                  value={slot.start_time}
-                  onChange={(e) => updateTimeSlot(index, 'start_time', e.target.value)}
-                />
-                <span>تا</span>
-                <Input
-                  type="time"
-                  placeholder="پایان"
-                  value={slot.end_time}
-                  onChange={(e) => updateTimeSlot(index, 'end_time', e.target.value)}
-                />
-                {timeSlots.length > 1 && (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => removeTimeSlot(index)}
-                  >
-                    <Minus className="h-4 w-4" />
-                  </Button>
-                )}
+      <div className="space-y-4">
+        {/* Step indicator */}
+        <div className="flex items-center justify-center mb-6">
+          {[1, 2, 3].map((step) => (
+            <div key={step} className="flex items-center">
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
+                step === currentStep ? 'bg-primary text-primary-foreground' :
+                step < currentStep ? 'bg-primary/20 text-primary' : 'bg-muted text-muted-foreground'
+              }`}>
+                {step}
               </div>
-            ))}
-          </CardContent>
-        </Card>
-
-        <div className="flex gap-3">
-          <Button type="submit" className="flex-1">
-            {initialData ? 'ویرایش' : 'ایجاد'} کار روتین
-          </Button>
-          <Button type="button" variant="outline" onClick={onCancel}>
-            انصراف
-          </Button>
+              {step < 3 && (
+                <div className={`w-12 h-0.5 mx-2 ${
+                  step < currentStep ? 'bg-primary' : 'bg-muted'
+                }`} />
+              )}
+            </div>
+          ))}
         </div>
-      </form>
+
+        {/* Step title */}
+        <div className="text-center mb-4">
+          <h3 className="text-lg font-medium">{stepTitles[currentStep - 1]}</h3>
+        </div>
+
+        <div className="space-y-4">
+          {/* Step content */}
+          <div className="min-h-[200px]">
+            {currentStep === 1 && <RoutineJobFormStep1 form={form} />}
+            {currentStep === 2 && (
+              <RoutineJobFormStep2 
+                form={form} 
+                selectedDays={selectedDays}
+                onToggleDay={toggleDay}
+              />
+            )}
+            {currentStep === 3 && (
+              <RoutineJobFormStep3 
+                timeSlots={timeSlots}
+                onAddTimeSlot={addTimeSlot}
+                onRemoveTimeSlot={removeTimeSlot}
+                onUpdateTimeSlot={updateTimeSlot}
+              />
+            )}
+          </div>
+
+          {/* Navigation buttons */}
+          <div className="flex gap-2 pt-4">
+            {currentStep > 1 && (
+              <Button type="button" variant="outline" onClick={handlePrevious}>
+                <ChevronRight size={16} className="ml-1" />
+                قبلی
+              </Button>
+            )}
+            
+            {currentStep < 3 ? (
+              <Button 
+                type="button" 
+                onClick={handleNext} 
+                disabled={!isStepValid(currentStep)}
+                className="flex-1"
+              >
+                بعدی
+                <ChevronLeft size={16} className="mr-1" />
+              </Button>
+            ) : (
+              <div className="flex gap-2 flex-1">
+                <Button 
+                  type="button" 
+                  onClick={handleSubmit} 
+                  disabled={isSubmitting} 
+                  className="flex-1"
+                >
+                  {isSubmitting ? (
+                    'در حال ذخیره...'
+                  ) : (
+                    <>
+                      <Plus size={16} className="ml-1" />
+                      {initialData ? 'ویرایش' : 'ایجاد'} کار روتین
+                    </>
+                  )}
+                </Button>
+                <Button type="button" variant="outline" onClick={onCancel}>
+                  انصراف
+                </Button>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
     </Form>
   );
 }
