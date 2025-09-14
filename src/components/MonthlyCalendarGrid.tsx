@@ -91,7 +91,7 @@ export function MonthlyCalendarGrid({ currentDate, tasks, onDayTap }: MonthlyCal
     <div className="p-4 space-y-4">
       {/* Day Names Header Row */}
       <div className="grid grid-cols-7 gap-2">
-        {['شنبه', 'یکشنبه', 'دوشنبه', 'سه‌شنبه', 'چهارشنبه', 'پنج‌شنبه', 'جمعه'].map((dayName, index) => (
+        {['ش', 'ی', 'د', 'س', 'چ', 'پ', 'ج'].map((dayName, index) => (
           <div key={dayName} className={`text-center text-sm font-medium py-2 ${
             index >= 5 ? 'text-destructive' : 'text-muted-foreground'
           }`}>
