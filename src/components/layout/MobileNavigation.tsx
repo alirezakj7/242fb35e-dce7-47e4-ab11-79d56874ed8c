@@ -133,7 +133,7 @@ export function MobileNavigation() {
                 <span className="text-xs mt-1 font-medium">بیشتر</span>
               </Button>
             </SheetTrigger>
-            <SheetContent side="bottom" className="h-[300px]">
+            <SheetContent side="bottom" className="h-[300px] z-[100]">
               <div className="flex justify-between items-center mb-6">
                 <h2 className="text-lg font-semibold">منوی برنامه</h2>
                 <Button 
