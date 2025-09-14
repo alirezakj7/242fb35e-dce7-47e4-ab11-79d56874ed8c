@@ -89,69 +89,72 @@ export function MonthlyCalendarGrid({ currentDate, tasks, onDayTap }: MonthlyCal
 
   return (
     <div className="p-4 space-y-4">
+      {/* Day Names Header Row */}
+      <div className="grid grid-cols-7 gap-2">
+        {['شنبه', 'یکشنبه', 'دوشنبه', 'سه‌شنبه', 'چهارشنبه', 'پنج‌شنبه', 'جمعه'].map((dayName, index) => (
+          <div key={dayName} className={`text-center text-sm font-medium py-2 ${
+            index >= 5 ? 'text-destructive' : 'text-muted-foreground'
+          }`}>
+            {dayName}
+          </div>
+        ))}
+      </div>
+
+      {/* Calendar Weeks */}
       {weeks.map((week, weekIndex) => (
         <div key={weekIndex} className="grid grid-cols-7 gap-2">
           {week.map((day, dayIndex) => (
-            <div key={dayIndex} className="space-y-1">
-              {/* Day Name on Top */}
-              <div className={`text-center text-xs font-medium ${
-                day.isWeekend ? 'text-destructive' : 'text-muted-foreground'
+            <Card 
+              key={dayIndex}
+              className={`min-h-[80px] p-2 cursor-pointer transition-all hover:shadow-md ${
+                day.isToday ? 'ring-2 ring-primary bg-primary/5' : ''
+              } ${
+                !day.isCurrentMonth ? 'opacity-40' : ''
+              } ${
+                day.isWeekend && day.isCurrentMonth ? 'bg-destructive/5' : ''
+              }`}
+              onClick={() => onDayTap(day.date.toDate())}
+            >
+              {/* Date Number */}
+              <div className={`text-sm font-bold mb-2 ${
+                day.isToday ? 'text-primary' : 
+                day.isWeekend && day.isCurrentMonth ? 'text-destructive' : 
+                'text-foreground'
               }`}>
-                {day.dayName}
+                {day.dayNumber}
               </div>
-              
-              {/* Day Card */}
-              <Card 
-                className={`min-h-[80px] p-2 cursor-pointer transition-all hover:shadow-md ${
-                  day.isToday ? 'ring-2 ring-primary bg-primary/5' : ''
-                } ${
-                  !day.isCurrentMonth ? 'opacity-40' : ''
-                } ${
-                  day.isWeekend && day.isCurrentMonth ? 'bg-destructive/5' : ''
-                }`}
-                onClick={() => onDayTap(day.date.toDate())}
-              >
-                {/* Date Number */}
-                <div className={`text-sm font-bold mb-2 ${
-                  day.isToday ? 'text-primary' : 
-                  day.isWeekend && day.isCurrentMonth ? 'text-destructive' : 
-                  'text-foreground'
-                }`}>
-                  {day.dayNumber}
-                </div>
 
-                {/* Multi-Day Event Bars */}
-                <div className="space-y-1 mb-2">
-                  {day.multiDayEvents.slice(0, 2).map((event, index) => (
-                    <div
-                      key={`${event.id}-${index}`}
-                      className={`h-1.5 rounded-full ${getCategoryColor(event.category)} opacity-80`}
-                      title={event.title}
-                    />
-                  ))}
-                </div>
+              {/* Multi-Day Event Bars */}
+              <div className="space-y-1 mb-2">
+                {day.multiDayEvents.slice(0, 2).map((event, index) => (
+                  <div
+                    key={`${event.id}-${index}`}
+                    className={`h-1.5 rounded-full ${getCategoryColor(event.category)} opacity-80`}
+                    title={event.title}
+                  />
+                ))}
+              </div>
 
-                {/* Single-Day Task Dots */}
-                <div className="grid grid-cols-3 gap-1">
-                  {day.singleDayTasks.map((task, index) => (
-                    <div
-                      key={task.id}
-                      className={`w-2 h-2 rounded-full ${getCategoryColor(task.category)} ${
-                        task.status === 'done' ? 'opacity-50' : ''
-                      }`}
-                      title={task.title}
-                    />
-                  ))}
-                </div>
+              {/* Single-Day Task Dots */}
+              <div className="grid grid-cols-3 gap-1">
+                {day.singleDayTasks.map((task, index) => (
+                  <div
+                    key={task.id}
+                    className={`w-2 h-2 rounded-full ${getCategoryColor(task.category)} ${
+                      task.status === 'done' ? 'opacity-50' : ''
+                    }`}
+                    title={task.title}
+                  />
+                ))}
+              </div>
 
-                {/* Task Count Overflow Indicator */}
-                {day.totalTasks > 6 && (
-                  <div className="text-xs text-muted-foreground text-center mt-1">
-                    +{JalaliCalendar.toPersianDigits(day.totalTasks - 6)}
-                  </div>
-                )}
-              </Card>
-            </div>
+              {/* Task Count Overflow Indicator */}
+              {day.totalTasks > 6 && (
+                <div className="text-xs text-muted-foreground text-center mt-1">
+                  +{JalaliCalendar.toPersianDigits(day.totalTasks - 6)}
+                </div>
+              )}
+            </Card>
           ))}
         </div>
       ))}
