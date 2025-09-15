@@ -114,11 +114,24 @@ export function RoutineJobForm({ initialData, onSubmit, onCancel }: RoutineJobFo
     const data = form.getValues();
     console.log('Form data before processing:', data);
     
+    // Convert day strings to integers for database storage
+    const dayStringToNumber: Record<string, number> = {
+      'saturday': 6,
+      'sunday': 0,
+      'monday': 1,
+      'tuesday': 2,
+      'wednesday': 3,
+      'thursday': 4,
+      'friday': 5
+    };
+    
+    const convertedDays = selectedDays.map(day => dayStringToNumber[day]).filter(day => day !== undefined);
+    
     setIsSubmitting(true);
     try {
       const formData = {
         ...data,
-        days_of_week: selectedDays.length > 0 ? selectedDays : null,
+        days_of_week: convertedDays.length > 0 ? convertedDays : null,
         time_slots: timeSlots.filter(slot => slot.start_time && slot.end_time).length > 0 ? timeSlots : null
       };
       
