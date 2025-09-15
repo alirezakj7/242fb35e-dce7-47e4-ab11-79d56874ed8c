@@ -236,7 +236,21 @@ export default function RoutineJobsPage() {
           routineJobs.map((job) => {
             const categoryInfo = getCategoryInfo(job.category);
             const timeSlots = job.time_slots as any[] || [];
-            const daysOfWeek = Array.isArray(job.days_of_week) ? job.days_of_week.map(String) : [];
+            // Convert integer days to string keys for display
+            const convertIntegerDaysToStrings = (days: number[]): string[] => {
+              const numberToDayString: Record<number, string> = {
+                0: 'sunday',
+                1: 'monday', 
+                2: 'tuesday',
+                3: 'wednesday',
+                4: 'thursday',
+                5: 'friday',
+                6: 'saturday'
+              };
+              return days?.map(day => numberToDayString[day]).filter(day => day !== undefined) || [];
+            };
+            
+            const daysOfWeek = Array.isArray(job.days_of_week) ? convertIntegerDaysToStrings(job.days_of_week) : [];
 
             return (
               <Card key={job.id} className={`shadow-card hover:shadow-elegant transition-smooth ${!job.active ? 'opacity-60' : ''}`}>
