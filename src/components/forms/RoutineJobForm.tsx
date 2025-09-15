@@ -60,7 +60,7 @@ export function RoutineJobForm({ initialData, onSubmit, onCancel }: RoutineJobFo
       earnings: initialData?.earnings || 0,
       frequency: initialData?.frequency || 'weekly',
       category: initialData?.category || '',
-      days_of_week: initialData?.days_of_week || [],
+      days_of_week: initialData?.days_of_week ? convertIntegerDaysToStrings(initialData.days_of_week) : [],
       time_slots: initialData?.time_slots || []
     }
   });
