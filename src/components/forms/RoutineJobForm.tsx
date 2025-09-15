@@ -34,7 +34,24 @@ export function RoutineJobForm({ initialData, onSubmit, onCancel }: RoutineJobFo
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [timeSlots, setTimeSlots] = useState(initialData?.time_slots || [{ start_time: '', end_time: '' }]);
-  const [selectedDays, setSelectedDays] = useState<string[]>(initialData?.days_of_week || []);
+  
+  // Convert integer days from database to string days for form state
+  const convertIntegerDaysToStrings = (days: number[]): string[] => {
+    const numberToDayString: Record<number, string> = {
+      0: 'sunday',
+      1: 'monday', 
+      2: 'tuesday',
+      3: 'wednesday',
+      4: 'thursday',
+      5: 'friday',
+      6: 'saturday'
+    };
+    return days?.map(day => numberToDayString[day]).filter(day => day !== undefined) || [];
+  };
+  
+  const [selectedDays, setSelectedDays] = useState<string[]>(
+    initialData?.days_of_week ? convertIntegerDaysToStrings(initialData.days_of_week) : []
+  );
 
   const form = useForm<RoutineJobFormData>({
     resolver: zodResolver(routineJobSchema),
