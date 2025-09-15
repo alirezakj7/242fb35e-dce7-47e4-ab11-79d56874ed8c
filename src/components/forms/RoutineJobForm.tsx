@@ -106,9 +106,13 @@ export function RoutineJobForm({ initialData, onSubmit, onCancel }: RoutineJobFo
     if (currentStep !== 3) return;
     
     const isValid = await form.trigger();
-    if (!isValid) return;
+    if (!isValid) {
+      console.log('Form validation failed:', form.formState.errors);
+      return;
+    }
 
     const data = form.getValues();
+    console.log('Form data before processing:', data);
     
     setIsSubmitting(true);
     try {
@@ -118,7 +122,11 @@ export function RoutineJobForm({ initialData, onSubmit, onCancel }: RoutineJobFo
         time_slots: timeSlots.filter(slot => slot.start_time && slot.end_time).length > 0 ? timeSlots : null
       };
       
+      console.log('Final form data being submitted:', formData);
       await onSubmit(formData);
+    } catch (error) {
+      console.error('Error in handleSubmit:', error);
+      throw error;
     } finally {
       setIsSubmitting(false);
     }
