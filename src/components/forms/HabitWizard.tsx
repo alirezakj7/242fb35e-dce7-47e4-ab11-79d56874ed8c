@@ -19,6 +19,7 @@ import { useToast } from '@/hooks/use-toast';
 import { JalaliCalendar } from '@/utils/jalali';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
+import { JalaliTimePicker } from '@/components/ui/jalali-time-picker';
 
 const habitSchema = z.object({
   name: z.string().min(1, 'نام عادت الزامی است'),
@@ -354,11 +355,11 @@ export function HabitWizard({ onSuccess }: HabitWizardProps) {
           {watchedFields.reminder_enabled && (
             <div className="space-y-2">
               <Label htmlFor="reminder_time">زمان یادآوری</Label>
-              <Input
+              <JalaliTimePicker
                 id="reminder_time"
-                type="time"
-                {...form.register('reminder_time')}
-                className="text-right"
+                value={form.watch('reminder_time') || ''}
+                onChange={(value) => form.setValue('reminder_time', value)}
+                placeholder="انتخاب زمان یادآوری"
               />
             </div>
           )}

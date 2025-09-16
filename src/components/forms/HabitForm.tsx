@@ -12,6 +12,7 @@ import { Plus } from 'lucide-react';
 import { wheelOfLifeCategories } from '@/constants/categories';
 import { useHabits } from '@/hooks/useHabits';
 import { useToast } from '@/hooks/use-toast';
+import { JalaliTimePicker } from '@/components/ui/jalali-time-picker';
 
 const habitSchema = z.object({
   name: z.string().min(1, 'نام عادت الزامی است'),
@@ -173,11 +174,11 @@ export function HabitForm({ onSuccess }: HabitFormProps) {
 
       <div className="space-y-2">
         <Label htmlFor="reminder_time">زمان یادآوری</Label>
-        <Input
+        <JalaliTimePicker
           id="reminder_time"
-          type="time"
-          {...form.register('reminder_time')}
-          className="text-right"
+          value={form.watch('reminder_time') || ''}
+          onChange={(value) => form.setValue('reminder_time', value)}
+          placeholder="انتخاب زمان یادآوری"
         />
         <p className="text-xs text-muted-foreground">
           اختیاری - زمان یادآوری روزانه برای این عادت

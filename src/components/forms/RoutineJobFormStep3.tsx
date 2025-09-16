@@ -2,6 +2,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { FormLabel } from '@/components/ui/form';
 import { Plus, Minus } from 'lucide-react';
+import { JalaliTimePicker } from '@/components/ui/jalali-time-picker';
 
 interface TimeSlot {
   start_time: string;
@@ -34,18 +35,18 @@ export function RoutineJobFormStep3({
       <div className="space-y-3">
         {timeSlots.map((slot, index) => (
           <div key={index} className="flex items-center gap-2">
-            <Input
-              type="time"
-              placeholder="شروع"
+            <JalaliTimePicker
               value={slot.start_time}
-              onChange={(e) => onUpdateTimeSlot(index, 'start_time', e.target.value)}
+              onChange={(value) => onUpdateTimeSlot(index, 'start_time', value)}
+              placeholder="زمان شروع"
+              className="flex-1"
             />
             <span className="text-muted-foreground">تا</span>
-            <Input
-              type="time"
-              placeholder="پایان"
+            <JalaliTimePicker
               value={slot.end_time}
-              onChange={(e) => onUpdateTimeSlot(index, 'end_time', e.target.value)}
+              onChange={(value) => onUpdateTimeSlot(index, 'end_time', value)}
+              placeholder="زمان پایان"
+              className="flex-1"
             />
             {timeSlots.length > 1 && (
               <Button
