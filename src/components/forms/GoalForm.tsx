@@ -15,6 +15,8 @@ import { cn } from '@/lib/utils';
 import { wheelOfLifeCategories } from '@/constants/categories';
 import { useGoals } from '@/hooks/useGoals';
 import { useToast } from '@/hooks/use-toast';
+import { JalaliCalendar } from '@/utils/jalali';
+import { JalaliCalendarComponent } from '@/components/ui/jalali-calendar';
 
 const goalSchema = z.object({
   title: z.string().min(1, 'عنوان هدف الزامی است'),
@@ -173,19 +175,19 @@ export function GoalForm({ onSuccess, defaultType }: GoalFormProps) {
             >
               <CalendarIcon className="ml-2 h-4 w-4" />
               {form.watch('deadline') ? (
-                format(form.watch('deadline')!, "PPP")
+                JalaliCalendar.formatPersian(form.watch('deadline')!)
               ) : (
                 <span>انتخاب تاریخ پایان</span>
               )}
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-auto p-0" align="start">
-            <Calendar
+            <JalaliCalendarComponent
               mode="single"
               selected={form.watch('deadline')}
               onSelect={(date) => form.setValue('deadline', date!)}
               initialFocus
-              className={cn("p-3 pointer-events-auto")}
+              className="pointer-events-auto"
               disabled={(date) => date < new Date()}
             />
           </PopoverContent>

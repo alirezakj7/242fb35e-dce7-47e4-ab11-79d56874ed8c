@@ -8,6 +8,8 @@ import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { wheelOfLifeCategories } from '@/constants/categories';
 import { UseFormReturn } from 'react-hook-form';
+import { JalaliCalendar } from '@/utils/jalali';
+import { JalaliCalendarComponent } from '@/components/ui/jalali-calendar';
 
 interface TaskFormStep2Props {
   form: UseFormReturn<any>;
@@ -53,7 +55,7 @@ export function TaskFormStep2({ form }: TaskFormStep2Props) {
               {form.watch('scheduled_date') ? (
                 (() => {
                   const date = form.watch('scheduled_date');
-                  return date && !isNaN(date.getTime()) ? format(date, "PPP") : 'تاریخ نامعتبر';
+                  return date && !isNaN(date.getTime()) ? JalaliCalendar.formatPersian(date) : 'تاریخ نامعتبر';
                 })()
               ) : (
                 <span>انتخاب تاریخ</span>
@@ -61,12 +63,12 @@ export function TaskFormStep2({ form }: TaskFormStep2Props) {
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-auto p-0" align="start">
-            <Calendar
+            <JalaliCalendarComponent
               mode="single"
               selected={form.watch('scheduled_date')}
               onSelect={(date) => form.setValue('scheduled_date', date)}
               initialFocus
-              className={cn("p-3 pointer-events-auto")}
+              className="pointer-events-auto"
             />
           </PopoverContent>
         </Popover>

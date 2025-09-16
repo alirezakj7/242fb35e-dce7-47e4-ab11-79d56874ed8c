@@ -13,6 +13,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
 import { JalaliCalendar } from '@/utils/jalali';
+import { JalaliCalendarComponent } from '@/components/ui/jalali-calendar';
 
 type CategoryType = 'career' | 'finance' | 'health' | 'family' | 'personal' | 'spiritual' | 'social' | 'education';
 
@@ -161,11 +162,11 @@ export function FinancialRecordForm({ onSubmit, onCancel, initialData }: Financi
               )}
             >
               <CalendarIcon className="ml-2 h-4 w-4" />
-              {date ? JalaliCalendar.format(date) : "تاریخ را انتخاب کنید"}
+              {date ? JalaliCalendar.formatPersian(date) : "تاریخ را انتخاب کنید"}
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-auto p-0" align="start">
-            <CalendarComponent
+            <JalaliCalendarComponent
               mode="single"
               selected={date}
               onSelect={(selectedDate) => selectedDate && setDate(selectedDate)}

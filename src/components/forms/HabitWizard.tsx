@@ -20,6 +20,7 @@ import { JalaliCalendar } from '@/utils/jalali';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
 import { JalaliTimePicker } from '@/components/ui/jalali-time-picker';
+import { JalaliCalendarComponent } from '@/components/ui/jalali-calendar';
 
 const habitSchema = z.object({
   name: z.string().min(1, 'نام عادت الزامی است'),
@@ -279,7 +280,7 @@ export function HabitWizard({ onSuccess }: HabitWizardProps) {
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0" align="start">
-              <Calendar
+              <JalaliCalendarComponent
                 mode="single"
                 selected={watchedFields.start_date}
                 onSelect={(date) => date && form.setValue('start_date', date)}
@@ -329,7 +330,7 @@ export function HabitWizard({ onSuccess }: HabitWizardProps) {
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
+                <JalaliCalendarComponent
                   mode="single"
                   selected={watchedFields.end_date}
                   onSelect={(date) => date && form.setValue('end_date', date)}
