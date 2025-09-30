@@ -1,5 +1,15 @@
 import { useState } from 'react';
-import { DndContext, DragEndEvent, DragOverlay, DragStartEvent, useDroppable } from '@dnd-kit/core';
+import { 
+  DndContext, 
+  DragEndEvent, 
+  DragOverlay, 
+  DragStartEvent, 
+  useDroppable,
+  PointerSensor,
+  TouchSensor,
+  useSensor,
+  useSensors
+} from '@dnd-kit/core';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DraggableTaskCard } from './DraggableTaskCard';
 import { JalaliCalendar } from '@/utils/jalali';
@@ -25,6 +35,21 @@ export function TimeBlockSchedule({ tasks, currentDate, onRefetch }: TimeBlockSc
   const [activeTask, setActiveTask] = useState<Task | null>(null);
   const { updateTask } = useTasks();
   const { toast } = useToast();
+  
+  // Configure sensors for both mouse and touch input
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8, // 8px movement required before drag starts
+      },
+    }),
+    useSensor(TouchSensor, {
+      activationConstraint: {
+        delay: 200, // 200ms delay before drag starts on touch
+        tolerance: 5, // 5px tolerance for movement during delay
+      },
+    })
+  );
   
   console.log('TimeBlockSchedule received tasks:', tasks.length, tasks);
 
@@ -117,7 +142,7 @@ export function TimeBlockSchedule({ tasks, currentDate, onRefetch }: TimeBlockSc
   };
 
   return (
-    <DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+    <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
       <div className="space-y-4">
         {/* Unscheduled Tasks */}
         <Card>
