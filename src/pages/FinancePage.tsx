@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Wallet, Plus, DollarSign, TrendingUp, TrendingDown, Edit, Trash2 } from 'lucide-react';
+import { Wallet, Plus, DollarSign, TrendingUp, TrendingDown, Edit, Trash2, CheckCircle2, Link2 } from 'lucide-react';
 import { JalaliCalendar } from '@/utils/jalali';
 import { useFinancialRecords } from '@/hooks/useFinancialRecords';
 import { FinancialRecordModal } from '@/components/modals/FinancialRecordModal';
@@ -23,13 +23,21 @@ export default function FinancePage() {
   const { records, loading, deleteRecord } = useFinancialRecords();
   const [modalOpen, setModalOpen] = useState(false);
   const [editingRecord, setEditingRecord] = useState<any>(null);
+  const [filterType, setFilterType] = useState<'all' | 'task' | 'manual'>('all');
+
+  // Filter records based on selected type
+  const filteredRecords = records.filter(record => {
+    if (filterType === 'task') return record.task_id !== null;
+    if (filterType === 'manual') return record.task_id === null && record.routine_job_id === null;
+    return true;
+  });
 
   // Calculate totals
-  const totalIncome = records
+  const totalIncome = filteredRecords
     .filter(r => r.type === 'income')
     .reduce((sum, r) => sum + Number(r.amount), 0);
   
-  const totalExpense = records
+  const totalExpense = filteredRecords
     .filter(r => r.type === 'expense')
     .reduce((sum, r) => sum + Number(r.amount), 0);
   
@@ -129,20 +137,53 @@ export default function FinancePage() {
       {/* Financial Records List */}
       <Card className="shadow-card">
         <CardHeader>
-          <CardTitle>تراکنش‌ها</CardTitle>
-          <CardDescription>
-            لیست کامل درآمدها و هزینه‌ها
-          </CardDescription>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle>تراکنش‌ها</CardTitle>
+              <CardDescription>
+                لیست کامل درآمدها و هزینه‌ها
+              </CardDescription>
+            </div>
+            <div className="flex gap-2">
+              <Button 
+                size="sm" 
+                variant={filterType === 'all' ? 'default' : 'outline'}
+                onClick={() => setFilterType('all')}
+              >
+                همه
+              </Button>
+              <Button 
+                size="sm" 
+                variant={filterType === 'task' ? 'default' : 'outline'}
+                onClick={() => setFilterType('task')}
+              >
+                از وظایف
+              </Button>
+              <Button 
+                size="sm" 
+                variant={filterType === 'manual' ? 'default' : 'outline'}
+                onClick={() => setFilterType('manual')}
+              >
+                دستی
+              </Button>
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
           {loading ? (
             <div className="text-center py-8">
               <p className="text-muted-foreground">در حال بارگذاری...</p>
             </div>
-          ) : records.length === 0 ? (
+          ) : filteredRecords.length === 0 ? (
             <div className="text-center py-8">
               <Wallet size={48} className="mx-auto mb-4 opacity-50 text-muted-foreground" />
-              <p className="text-muted-foreground mb-4">هنوز تراکنشی ثبت نشده است</p>
+              <p className="text-muted-foreground mb-4">
+                {filterType === 'all' 
+                  ? 'هنوز تراکنشی ثبت نشده است'
+                  : filterType === 'task'
+                  ? 'هیچ تراکنش مرتبط با وظایفی یافت نشد'
+                  : 'هیچ تراکنش دستی یافت نشد'}
+              </p>
               <Button 
                 onClick={() => {
                   setEditingRecord(null);
@@ -156,21 +197,43 @@ export default function FinancePage() {
             </div>
           ) : (
             <div className="space-y-3">
-              {records.map((record) => (
+              {filteredRecords.map((record: any) => (
                 <div
                   key={record.id}
                   className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors"
                 >
                   <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
+                    <div className="flex items-center gap-2 mb-1 flex-wrap">
                       <Badge variant={record.type === 'income' ? 'default' : 'destructive'}>
                         {record.type === 'income' ? 'درآمد' : 'هزینه'}
                       </Badge>
                       <span className="text-sm text-muted-foreground">
                         {getCategoryLabel(record.category)}
                       </span>
+                      {record.task_id && (
+                        <Badge variant="outline" className="flex items-center gap-1">
+                          <CheckCircle2 size={12} />
+                          <span>از وظیفه</span>
+                        </Badge>
+                      )}
+                      {record.routine_job_id && (
+                        <Badge variant="outline" className="flex items-center gap-1">
+                          <Link2 size={12} />
+                          <span>کار روتین</span>
+                        </Badge>
+                      )}
                     </div>
                     <p className="font-medium">{record.description}</p>
+                    {record.tasks && (
+                      <p className="text-xs text-muted-foreground">
+                        وظیفه: {record.tasks.title}
+                      </p>
+                    )}
+                    {record.routine_jobs && (
+                      <p className="text-xs text-muted-foreground">
+                        کار روتین: {record.routine_jobs.name}
+                      </p>
+                    )}
                     <p className="text-sm text-muted-foreground">
                       {JalaliCalendar.format(new Date(record.date))}
                     </p>

@@ -18,7 +18,11 @@ export function useFinancialRecords() {
     try {
       const { data, error } = await supabase
         .from('financial_records')
-        .select('*')
+        .select(`
+          *,
+          tasks:task_id(title, category),
+          routine_jobs:routine_job_id(name)
+        `)
         .eq('user_id', user.id)
         .order('date', { ascending: false });
 

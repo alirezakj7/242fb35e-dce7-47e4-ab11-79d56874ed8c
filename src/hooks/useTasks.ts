@@ -96,17 +96,23 @@ export function useTasks() {
 
         if (task.financial_type === 'spend') {
           recordType = 'expense';
-        }
-
-        // For routine tasks, get amount from routine job
-        if (task.routine_job_id && task.financial_type !== 'spend') {
-          const { data: routineJob } = await supabase
-            .from('routine_jobs')
-            .select('earnings')
-            .eq('id', task.routine_job_id)
-            .single();
-          
-          amount = routineJob?.earnings || 0;
+          // Get amount from task data (user-entered amount for expenses)
+          amount = (task as any).amount || 0;
+        } else {
+          // earn_once
+          // For routine tasks, get amount from routine job
+          if (task.routine_job_id) {
+            const { data: routineJob } = await supabase
+              .from('routine_jobs')
+              .select('earnings')
+              .eq('id', task.routine_job_id)
+              .single();
+            
+            amount = routineJob?.earnings || 0;
+          } else {
+            // For one-time earnings, use the amount from task
+            amount = (task as any).amount || 0;
+          }
         }
 
         if (amount > 0) {

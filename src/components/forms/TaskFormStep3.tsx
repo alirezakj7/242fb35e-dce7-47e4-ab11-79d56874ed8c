@@ -16,7 +16,7 @@ export function TaskFormStep3({ form }: TaskFormStep3Props) {
     setHasFinancial(checked);
     if (!checked) {
       form.setValue('financial_type', undefined);
-      form.setValue('earnings', '');
+      form.setValue('amount', '');
     }
   };
 
@@ -60,14 +60,21 @@ export function TaskFormStep3({ form }: TaskFormStep3Props) {
 
             {form.watch('financial_type') && (
               <div className="space-y-2">
-                <Label htmlFor="earnings">مبلغ (تومان)</Label>
+                <Label htmlFor="amount">
+                  مبلغ {form.watch('financial_type') === 'spend' ? 'هزینه' : 'درآمد'} (تومان)
+                </Label>
                 <Input
-                  id="earnings"
+                  id="amount"
                   type="number"
                   placeholder="۱۰۰۰۰"
-                  {...form.register('earnings')}
+                  {...form.register('amount')}
                   className="text-right"
                 />
+                <p className="text-xs text-muted-foreground">
+                  {form.watch('financial_type') === 'spend' 
+                    ? 'مبلغی که برای این کار خرج می‌کنید'
+                    : 'مبلغی که از این کار کسب می‌کنید'}
+                </p>
               </div>
             )}
           </div>

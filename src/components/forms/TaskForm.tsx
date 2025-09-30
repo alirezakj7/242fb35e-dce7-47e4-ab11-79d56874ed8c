@@ -17,7 +17,7 @@ const taskSchema = z.object({
   scheduled_date: z.date().optional(),
   tags: z.string().optional(),
   financial_type: z.enum(['spend', 'earn_once']).optional(),
-  earnings: z.string().optional(),
+  amount: z.string().optional(),
 });
 
 type TaskFormData = z.infer<typeof taskSchema>;
@@ -43,7 +43,7 @@ export function TaskForm({ onSuccess, defaultDate, task }: TaskFormProps) {
       scheduled_date: defaultDate,
       tags: '',
       financial_type: undefined,
-      earnings: '',
+      amount: '',
     },
   });
 
@@ -88,7 +88,7 @@ export function TaskForm({ onSuccess, defaultDate, task }: TaskFormProps) {
     
     setIsSubmitting(true);
     try {
-      const taskData = {
+      const taskData: any = {
         title: data.title,
         description: data.description || null,
         category: data.category as any,
@@ -97,6 +97,11 @@ export function TaskForm({ onSuccess, defaultDate, task }: TaskFormProps) {
         status: 'not_started' as const,
         financial_type: data.financial_type || null,
       };
+
+      // Add amount if financial type is selected
+      if (data.financial_type && data.amount) {
+        taskData.amount = parseFloat(data.amount);
+      }
 
       await addTask(taskData);
       
