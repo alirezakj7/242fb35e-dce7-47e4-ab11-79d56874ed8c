@@ -90,6 +90,34 @@ export function useRoutineJobs() {
     await updateRoutineJob(id, { active: !job.active });
   };
 
+  const logRoutineJobCompletion = async (jobId: string) => {
+    if (!user) return;
+
+    try {
+      const job = routineJobs.find(j => j.id === jobId);
+      if (!job) throw new Error('Routine job not found');
+
+      // Create financial record
+      const { error } = await supabase
+        .from('financial_records')
+        .insert({
+          user_id: user.id,
+          type: 'income',
+          amount: job.earnings,
+          description: `انجام کار روتین: ${job.name}`,
+          category: job.category,
+          date: new Date().toISOString().split('T')[0],
+          routine_job_id: jobId,
+        });
+
+      if (error) throw error;
+      return true;
+    } catch (error) {
+      console.error('Error logging routine job completion:', error);
+      throw error;
+    }
+  };
+
   useEffect(() => {
     fetchRoutineJobs();
   }, [user]);
@@ -101,6 +129,7 @@ export function useRoutineJobs() {
     updateRoutineJob,
     deleteRoutineJob,
     toggleRoutineJobStatus,
+    logRoutineJobCompletion,
     refetch: fetchRoutineJobs
   };
 }

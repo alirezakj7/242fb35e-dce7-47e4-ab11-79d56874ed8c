@@ -14,7 +14,8 @@ import {
   Play, 
   Pause,
   TrendingUp,
-  Briefcase
+  Briefcase,
+  CheckCircle
 } from 'lucide-react';
 import { wheelOfLifeCategories } from '@/constants/categories';
 import { JalaliCalendar } from '@/utils/jalali';
@@ -37,7 +38,7 @@ const frequencyMap: Record<string, string> = {
 };
 
 export default function RoutineJobsPage() {
-  const { routineJobs, loading, addRoutineJob, updateRoutineJob, deleteRoutineJob, toggleRoutineJobStatus } = useRoutineJobs();
+  const { routineJobs, loading, addRoutineJob, updateRoutineJob, deleteRoutineJob, toggleRoutineJobStatus, logRoutineJobCompletion } = useRoutineJobs();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingJob, setEditingJob] = useState<any>(null);
   const { toast } = useToast();
@@ -117,6 +118,22 @@ export default function RoutineJobsPage() {
       toast({
         title: 'خطا',
         description: 'خطا در تغییر وضعیت',
+        variant: 'destructive'
+      });
+    }
+  };
+
+  const handleLogCompletion = async (id: string, jobName: string) => {
+    try {
+      await logRoutineJobCompletion(id);
+      toast({
+        title: 'ثبت شد',
+        description: `انجام ${jobName} ثبت و درآمد به حساب اضافه شد`,
+      });
+    } catch (error) {
+      toast({
+        title: 'خطا',
+        description: 'خطا در ثبت انجام کار',
         variant: 'destructive'
       });
     }
@@ -274,6 +291,17 @@ export default function RoutineJobsPage() {
                     </div>
                     
                     <div className="flex items-center gap-1">
+                      {job.active && (
+                        <Button
+                          variant="default"
+                          size="sm"
+                          onClick={() => handleLogCompletion(job.id, job.name)}
+                          className="gap-1"
+                        >
+                          <CheckCircle className="h-4 w-4" />
+                          <span className="hidden sm:inline">انجام شد</span>
+                        </Button>
+                      )}
                       <Button
                         variant="ghost"
                         size="sm"
