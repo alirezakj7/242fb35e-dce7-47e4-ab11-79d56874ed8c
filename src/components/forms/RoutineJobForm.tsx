@@ -11,7 +11,7 @@ import { RoutineJobFormStep3 } from './RoutineJobFormStep3';
 
 
 const routineJobSchema = z.object({
-  name: z.string().min(1, 'نام کار ضروری است'),
+  name: z.string().min(1, 'نام کار ضروری است').max(100, 'نام کار نباید بیشتر از 100 کاراکتر باشد'),
   earnings: z.number().min(0, 'درآمد باید مثبت باشد'),
   frequency: z.enum(['daily', 'weekly', 'monthly']),
   category: z.string().min(1, 'دسته‌بندی ضروری است'),
@@ -19,7 +19,8 @@ const routineJobSchema = z.object({
   time_slots: z.array(z.object({
     start_time: z.string(),
     end_time: z.string()
-  })).optional()
+  })).optional(),
+  payment_day: z.number().int().min(0).max(31).optional()
 });
 
 type RoutineJobFormData = z.infer<typeof routineJobSchema>;
@@ -61,7 +62,8 @@ export function RoutineJobForm({ initialData, onSubmit, onCancel }: RoutineJobFo
       frequency: initialData?.frequency || 'weekly',
       category: initialData?.category || '',
       days_of_week: initialData?.days_of_week ? convertIntegerDaysToStrings(initialData.days_of_week) : [],
-      time_slots: initialData?.time_slots || []
+      time_slots: initialData?.time_slots || [],
+      payment_day: initialData?.payment_day || undefined
     }
   });
 
@@ -78,7 +80,7 @@ export function RoutineJobForm({ initialData, onSubmit, onCancel }: RoutineJobFo
                form.watch('earnings') > 0 && 
                !!form.watch('category');
       case 2:
-        return !!form.watch('frequency');
+        return !!form.watch('frequency') && form.watch('payment_day') !== undefined;
       case 3:
         return true; // Step 3 is optional
       default:

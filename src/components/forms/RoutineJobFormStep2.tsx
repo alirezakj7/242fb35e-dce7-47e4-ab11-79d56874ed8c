@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from '@/components/ui/form';
 import { UseFormReturn } from 'react-hook-form';
 
 const daysOfWeek = [
@@ -71,6 +71,44 @@ export function RoutineJobFormStep2({ form, selectedDays, onToggleDay }: Routine
           ))}
         </div>
       </div>
+
+      <FormField
+        control={form.control}
+        name="payment_day"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>روز پرداخت *</FormLabel>
+            <Select onValueChange={(value) => field.onChange(parseInt(value))} value={field.value?.toString()}>
+              <FormControl>
+                <SelectTrigger>
+                  <SelectValue placeholder="انتخاب روز پرداخت" />
+                </SelectTrigger>
+              </FormControl>
+              <SelectContent>
+                {form.watch('frequency') === 'weekly' && daysOfWeek.map((day, index) => (
+                  <SelectItem key={day.key} value={index.toString()}>
+                    {day.label}
+                  </SelectItem>
+                ))}
+                {form.watch('frequency') === 'monthly' && Array.from({ length: 31 }, (_, i) => i + 1).map(day => (
+                  <SelectItem key={day} value={day.toString()}>
+                    روز {day}
+                  </SelectItem>
+                ))}
+                {form.watch('frequency') === 'daily' && (
+                  <SelectItem value="0">روزانه</SelectItem>
+                )}
+              </SelectContent>
+            </Select>
+            <FormDescription>
+              {form.watch('frequency') === 'weekly' && 'روز هفته که دستمزد پرداخت می‌شود'}
+              {form.watch('frequency') === 'monthly' && 'روز ماه که دستمزد پرداخت می‌شود'}
+              {form.watch('frequency') === 'daily' && 'هر روز دستمزد پرداخت می‌شود'}
+            </FormDescription>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
     </div>
   );
 }

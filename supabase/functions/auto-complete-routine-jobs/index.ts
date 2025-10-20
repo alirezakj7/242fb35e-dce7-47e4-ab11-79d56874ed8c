@@ -13,9 +13,8 @@ interface RoutineJob {
   frequency: string;
   days_of_week: string[] | null;
   active: boolean;
-  completions: string[];
-  last_payout_date: string | null;
   category: string;
+  payment_day: number | null;
 }
 
 Deno.serve(async (req) => {
@@ -30,10 +29,11 @@ Deno.serve(async (req) => {
     );
 
     const today = new Date();
-    const dayOfWeek = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'][today.getDay()];
+    const dayOfWeek = today.getDay(); // 0 = Sunday, 6 = Saturday
+    const dayOfMonth = today.getDate(); // 1-31
     const todayStr = today.toISOString().split('T')[0];
 
-    console.log(`Running auto-completion check for ${todayStr}, day: ${dayOfWeek}`);
+    console.log(`Running payment check for ${todayStr}, day of week: ${dayOfWeek}, day of month: ${dayOfMonth}`);
 
     // Get all active routine jobs
     const { data: jobs, error: fetchError } = await supabaseClient
@@ -51,119 +51,61 @@ Deno.serve(async (req) => {
     const results = [];
 
     for (const job of (jobs as RoutineJob[])) {
-      let shouldComplete = false;
-
-      // Check if job should be completed today based on frequency
-      if (job.frequency === 'daily') {
-        shouldComplete = true;
-      } else if (job.frequency === 'weekly') {
-        // Complete on the first day of the week if days_of_week includes it
-        if (job.days_of_week && job.days_of_week.includes(dayOfWeek)) {
-          shouldComplete = true;
-        }
-      } else if (job.frequency === 'custom' && job.days_of_week) {
-        // Complete if today is in the custom days
-        if (job.days_of_week.includes(dayOfWeek)) {
-          shouldComplete = true;
-        }
-      } else if (job.frequency === 'monthly') {
-        // Complete on the 1st of each month
-        if (today.getDate() === 1) {
-          shouldComplete = true;
-        }
+      if (!job.payment_day && job.payment_day !== 0) {
+        console.log(`Job ${job.name} has no payment day set, skipping`);
+        continue;
       }
 
-      if (shouldComplete) {
-        // Get current completions
-        const completions = (job.completions || []) as string[];
-        
-        // Check if already completed today
-        if (completions.includes(todayStr)) {
-          console.log(`Job ${job.name} already completed today`);
-          continue;
-        }
+      let shouldPay = false;
 
-        const updatedCompletions = [...completions, todayStr];
+      // Check if today is the payment day based on frequency
+      if (job.frequency === 'daily') {
+        // Daily jobs pay every day
+        shouldPay = true;
+      } else if (job.frequency === 'weekly') {
+        // Weekly jobs pay on a specific day of the week (0-6)
+        shouldPay = dayOfWeek === job.payment_day;
+      } else if (job.frequency === 'monthly') {
+        // Monthly jobs pay on a specific day of the month (1-31)
+        // Handle edge case for months with fewer days
+        const lastDayOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
+        const effectivePaymentDay = Math.min(job.payment_day, lastDayOfMonth);
+        shouldPay = dayOfMonth === effectivePaymentDay;
+      }
 
-        // Calculate required completions for a month
-        let requiredCompletions = 0;
-        if (job.frequency === 'daily') {
-          requiredCompletions = 30;
-        } else if (job.frequency === 'weekly') {
-          requiredCompletions = 4;
-        } else if (job.frequency === 'monthly') {
-          requiredCompletions = 1;
-        } else if (job.frequency === 'custom' && job.days_of_week) {
-          requiredCompletions = job.days_of_week.length * 4;
-        }
+      if (shouldPay) {
+        console.log(`Payment day reached for job ${job.name}! Creating financial record`);
 
-        console.log(`Job ${job.name}: ${updatedCompletions.length}/${requiredCompletions} completions`);
-
-        // Check if we've reached the monthly threshold
-        if (updatedCompletions.length >= requiredCompletions) {
-          console.log(`Job ${job.name} reached threshold! Creating financial record`);
-
-          // Create financial record
-          const { error: finError } = await supabaseClient
-            .from('financial_records')
-            .insert({
-              user_id: job.user_id,
-              type: 'income',
-              amount: job.earnings,
-              description: `دستمزد ماهانه: ${job.name}`,
-              category: job.category,
-              date: todayStr,
-              routine_job_id: job.id,
-            });
-
-          if (finError) {
-            console.error(`Error creating financial record for ${job.name}:`, finError);
-            throw finError;
-          }
-
-          // Reset completions
-          const { error: updateError } = await supabaseClient
-            .from('routine_jobs')
-            .update({
-              completions: [],
-              last_payout_date: todayStr,
-            })
-            .eq('id', job.id);
-
-          if (updateError) {
-            console.error(`Error resetting completions for ${job.name}:`, updateError);
-            throw updateError;
-          }
-
-          results.push({
-            job: job.name,
-            status: 'payout',
+        // Create financial record
+        const { error: finError } = await supabaseClient
+          .from('financial_records')
+          .insert({
+            user_id: job.user_id,
+            type: 'income',
             amount: job.earnings,
-            completions: requiredCompletions,
+            description: `دستمزد ${job.frequency === 'daily' ? 'روزانه' : job.frequency === 'weekly' ? 'هفتگی' : 'ماهانه'}: ${job.name}`,
+            category: job.category,
+            date: todayStr,
+            routine_job_id: job.id,
           });
-        } else {
-          // Just update completions
-          const { error: updateError } = await supabaseClient
-            .from('routine_jobs')
-            .update({ completions: updatedCompletions })
-            .eq('id', job.id);
 
-          if (updateError) {
-            console.error(`Error updating completions for ${job.name}:`, updateError);
-            throw updateError;
-          }
-
-          results.push({
-            job: job.name,
-            status: 'completed',
-            completions: updatedCompletions.length,
-            remaining: requiredCompletions - updatedCompletions.length,
-          });
+        if (finError) {
+          console.error(`Error creating financial record for ${job.name}:`, finError);
+          throw finError;
         }
+
+        results.push({
+          job: job.name,
+          status: 'paid',
+          amount: job.earnings,
+          frequency: job.frequency,
+        });
+      } else {
+        console.log(`Payment day not reached for job ${job.name} (frequency: ${job.frequency}, payment_day: ${job.payment_day})`);
       }
     }
 
-    console.log('Auto-completion results:', results);
+    console.log('Auto-payment results:', results);
 
     return new Response(
       JSON.stringify({ success: true, results }),
