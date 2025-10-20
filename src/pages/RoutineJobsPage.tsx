@@ -14,8 +14,7 @@ import {
   Play, 
   Pause,
   TrendingUp,
-  Briefcase,
-  CheckCircle
+  Briefcase
 } from 'lucide-react';
 import { wheelOfLifeCategories } from '@/constants/categories';
 import { JalaliCalendar } from '@/utils/jalali';
@@ -38,7 +37,7 @@ const frequencyMap: Record<string, string> = {
 };
 
 export default function RoutineJobsPage() {
-  const { routineJobs, loading, addRoutineJob, updateRoutineJob, deleteRoutineJob, toggleRoutineJobStatus, logRoutineJobCompletion } = useRoutineJobs();
+  const { routineJobs, loading, addRoutineJob, updateRoutineJob, deleteRoutineJob, toggleRoutineJobStatus } = useRoutineJobs();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingJob, setEditingJob] = useState<any>(null);
   const { toast } = useToast();
@@ -123,23 +122,6 @@ export default function RoutineJobsPage() {
     }
   };
 
-  const handleLogCompletion = async (id: string, jobName: string) => {
-    try {
-      const result = await logRoutineJobCompletion(id);
-      if (result) {
-        toast({
-          title: result.completed ? '🎉 دستمزد پرداخت شد!' : 'ثبت شد',
-          description: result.message,
-        });
-      }
-    } catch (error) {
-      toast({
-        title: 'خطا',
-        description: 'خطا در ثبت انجام کار',
-        variant: 'destructive'
-      });
-    }
-  };
 
   const activeJobs = routineJobs.filter(job => job.active);
   const totalMonthlyEarnings = activeJobs.reduce((total, job) => {
@@ -293,17 +275,6 @@ export default function RoutineJobsPage() {
                     </div>
                     
                     <div className="flex items-center gap-1">
-                      {job.active && (
-                        <Button
-                          variant="default"
-                          size="sm"
-                          onClick={() => handleLogCompletion(job.id, job.name)}
-                          className="gap-1"
-                        >
-                          <CheckCircle className="h-4 w-4" />
-                          <span className="hidden sm:inline">انجام شد</span>
-                        </Button>
-                      )}
                       <Button
                         variant="ghost"
                         size="sm"
