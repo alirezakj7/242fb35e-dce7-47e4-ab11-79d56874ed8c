@@ -97,21 +97,84 @@ export function useRoutineJobs() {
       const job = routineJobs.find(j => j.id === jobId);
       if (!job) throw new Error('Routine job not found');
 
-      // Create financial record
-      const { error } = await supabase
-        .from('financial_records')
-        .insert({
-          user_id: user.id,
-          type: 'income',
-          amount: job.earnings,
-          description: `انجام کار روتین: ${job.name}`,
-          category: job.category,
-          date: new Date().toISOString().split('T')[0],
-          routine_job_id: jobId,
-        });
+      // Get current completions
+      const completions = (job.completions as string[]) || [];
+      const today = new Date().toISOString().split('T')[0];
+      
+      // Add today's completion
+      const updatedCompletions = [...completions, today];
 
-      if (error) throw error;
-      return true;
+      // Calculate required completions for a month based on frequency
+      let requiredCompletions = 0;
+      if (job.frequency === 'daily') {
+        requiredCompletions = 30;
+      } else if (job.frequency === 'weekly') {
+        requiredCompletions = 4;
+      } else if (job.frequency === 'monthly') {
+        requiredCompletions = 1;
+      } else if (job.frequency === 'custom' && job.days_of_week) {
+        // Calculate based on days per week * 4 weeks
+        requiredCompletions = job.days_of_week.length * 4;
+      }
+
+      // Check if we've reached the monthly threshold
+      if (updatedCompletions.length >= requiredCompletions) {
+        // Create financial record
+        const { error: finError } = await supabase
+          .from('financial_records')
+          .insert({
+            user_id: user.id,
+            type: 'income',
+            amount: job.earnings,
+            description: `دستمزد ماهانه: ${job.name}`,
+            category: job.category,
+            date: today,
+            routine_job_id: jobId,
+          });
+
+        if (finError) throw finError;
+
+        // Reset completions and update last payout date
+        const { error: updateError } = await supabase
+          .from('routine_jobs')
+          .update({
+            completions: [],
+            last_payout_date: today,
+          })
+          .eq('id', jobId);
+
+        if (updateError) throw updateError;
+
+        // Update local state
+        setRoutineJobs(prev => prev.map(j => 
+          j.id === jobId 
+            ? { ...j, completions: [], last_payout_date: today }
+            : j
+        ));
+
+        return { completed: true, message: `ماه کامل شد! ${job.earnings} تومان به حساب شما اضافه شد` };
+      } else {
+        // Just update completions
+        const { error: updateError } = await supabase
+          .from('routine_jobs')
+          .update({ completions: updatedCompletions })
+          .eq('id', jobId);
+
+        if (updateError) throw updateError;
+
+        // Update local state
+        setRoutineJobs(prev => prev.map(j => 
+          j.id === jobId 
+            ? { ...j, completions: updatedCompletions }
+            : j
+        ));
+
+        const remaining = requiredCompletions - updatedCompletions.length;
+        return { 
+          completed: false, 
+          message: `ثبت شد! ${remaining} بار دیگر تا دریافت دستمزد ماهانه` 
+        };
+      }
     } catch (error) {
       console.error('Error logging routine job completion:', error);
       throw error;

@@ -183,11 +183,13 @@ export type Database = {
         Row: {
           active: boolean
           category: Database["public"]["Enums"]["wheel_of_life_category"]
+          completions: Json | null
           created_at: string
           days_of_week: number[] | null
           earnings: number
           frequency: Database["public"]["Enums"]["frequency"]
           id: string
+          last_payout_date: string | null
           name: string
           time_slots: Json | null
           updated_at: string
@@ -196,11 +198,13 @@ export type Database = {
         Insert: {
           active?: boolean
           category: Database["public"]["Enums"]["wheel_of_life_category"]
+          completions?: Json | null
           created_at?: string
           days_of_week?: number[] | null
           earnings: number
           frequency: Database["public"]["Enums"]["frequency"]
           id?: string
+          last_payout_date?: string | null
           name: string
           time_slots?: Json | null
           updated_at?: string
@@ -209,11 +213,13 @@ export type Database = {
         Update: {
           active?: boolean
           category?: Database["public"]["Enums"]["wheel_of_life_category"]
+          completions?: Json | null
           created_at?: string
           days_of_week?: number[] | null
           earnings?: number
           frequency?: Database["public"]["Enums"]["frequency"]
           id?: string
+          last_payout_date?: string | null
           name?: string
           time_slots?: Json | null
           updated_at?: string

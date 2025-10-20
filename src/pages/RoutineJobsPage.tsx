@@ -125,11 +125,13 @@ export default function RoutineJobsPage() {
 
   const handleLogCompletion = async (id: string, jobName: string) => {
     try {
-      await logRoutineJobCompletion(id);
-      toast({
-        title: 'ثبت شد',
-        description: `انجام ${jobName} ثبت و درآمد به حساب اضافه شد`,
-      });
+      const result = await logRoutineJobCompletion(id);
+      if (result) {
+        toast({
+          title: result.completed ? '🎉 دستمزد پرداخت شد!' : 'ثبت شد',
+          description: result.message,
+        });
+      }
     } catch (error) {
       toast({
         title: 'خطا',
