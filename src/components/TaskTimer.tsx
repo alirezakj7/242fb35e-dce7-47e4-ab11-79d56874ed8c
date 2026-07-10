@@ -15,7 +15,7 @@ interface TaskTimerProps {
 export function TaskTimer({ taskId, currentStatus, timeSpent, onStatusChange }: TaskTimerProps) {
   const [isRunning, setIsRunning] = useState(false);
   const [currentTime, setCurrentTime] = useState(timeSpent);
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const { updateTask } = useTasks();
   const { toast } = useToast();
 
