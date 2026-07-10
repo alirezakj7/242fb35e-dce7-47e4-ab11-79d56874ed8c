@@ -58,8 +58,9 @@ export function MonthlyCalendarGrid({ currentDate, tasks, onDayTap }: MonthlyCal
   while (currentDay.isSameOrBefore(endOfCalendar, 'day')) {
     const week = [];
     for (let i = 0; i < 7; i++) {
+      const currentDayDate = JalaliCalendar.toEnglishDigits(currentDay.format('YYYY-MM-DD'));
       const dayTasks = monthTasks.filter(task => 
-        task.scheduled_date === currentDay.format('YYYY-MM-DD')
+        task.scheduled_date === currentDayDate
       );
       
       const isToday = JalaliCalendar.isToday(currentDay.toDate());

@@ -37,7 +37,7 @@ export default function WeeklyPlannerPage() {
     
     for (let i = 0; i < 7; i++) {
       const day = weekStart.clone().add(i, 'days');
-      const dateStr = day.format('YYYY-MM-DD');
+      const dateStr = JalaliCalendar.toEnglishDigits(day.format('YYYY-MM-DD'));
       const dayTasks = tasks.filter(task => task.scheduled_date === dateStr);
       
       days.push({
