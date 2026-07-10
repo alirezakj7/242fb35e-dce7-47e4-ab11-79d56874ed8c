@@ -93,7 +93,7 @@ export function TaskForm({ onSuccess, defaultDate, task }: TaskFormProps) {
         title: data.title,
         description: data.description || null,
         category: data.category as any,
-        scheduled_date: data.scheduled_date ? JalaliCalendar.format(data.scheduled_date, 'YYYY-MM-DD') : null,
+        scheduled_date: data.scheduled_date ? `${data.scheduled_date.getFullYear()}-${String(data.scheduled_date.getMonth() + 1).padStart(2, '0')}-${String(data.scheduled_date.getDate()).padStart(2, '0')}` : null,
         tags: data.tags ? data.tags.split('،').map(tag => tag.trim()).filter(Boolean) : [],
         status: 'not_started' as const,
         financial_type: data.financial_type || null,
