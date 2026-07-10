@@ -9,6 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import { TaskFormStep1 } from './TaskFormStep1';
 import { TaskFormStep2 } from './TaskFormStep2';
 import { TaskFormStep3 } from './TaskFormStep3';
+import { JalaliCalendar } from '@/utils/jalali';
 
 const taskSchema = z.object({
   title: z.string().min(1, 'عنوان وظیفه الزامی است'),
@@ -92,7 +93,7 @@ export function TaskForm({ onSuccess, defaultDate, task }: TaskFormProps) {
         title: data.title,
         description: data.description || null,
         category: data.category as any,
-        scheduled_date: null, // Don't set scheduled_date by default - let user drag to schedule
+        scheduled_date: data.scheduled_date ? JalaliCalendar.format(data.scheduled_date, 'YYYY-MM-DD') : null,
         tags: data.tags ? data.tags.split('،').map(tag => tag.trim()).filter(Boolean) : [],
         status: 'not_started' as const,
         financial_type: data.financial_type || null,
