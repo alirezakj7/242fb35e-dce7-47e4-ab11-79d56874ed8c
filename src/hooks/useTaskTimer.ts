@@ -12,7 +12,7 @@ export function useTaskTimer({ taskId, initialTimeSpent = 0, onStatusChange }: U
   const [isRunning, setIsRunning] = useState(false);
   const [timeSpent, setTimeSpent] = useState(initialTimeSpent);
   const [sessionTime, setSessionTime] = useState(0);
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const { updateTask } = useTasks();
   const { toast } = useToast();
 
